@@ -4,12 +4,13 @@ import {
   ChevronDown,
   CircleHelp,
   GitBranch,
-  GitFork,
   Hexagon,
   Settings2,
   Upload,
 } from "lucide-react";
 import Link from "next/link";
+import type { GithubState } from "@/components/github/useGithubState";
+import { GithubHeaderChip } from "@/components/github/GithubHeaderChip";
 import { DeveloperModeToggle } from "./DeveloperModeToggle";
 import { isBuildPhase, type BuildStatus } from "./types";
 
@@ -17,11 +18,15 @@ type WorkspaceHeaderProps = {
   status: BuildStatus;
   projectName: string;
   developerMode: boolean;
+  changes: number;
+  branch: string;
+  github: GithubState;
+  onOpenGithub: () => void;
   onDeveloperModeChange: (enabled: boolean) => void;
   onNotice: (message: string) => void;
 };
 
-export function WorkspaceHeader({ status, projectName, developerMode, onDeveloperModeChange, onNotice }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ status, projectName, developerMode, changes, branch, github, onOpenGithub, onDeveloperModeChange, onNotice }: WorkspaceHeaderProps) {
   const busy = isBuildPhase(status);
   const stateText = busy
     ? "Building…"
@@ -60,7 +65,7 @@ export function WorkspaceHeader({ status, projectName, developerMode, onDevelope
         </button>
         <span className="hidden items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[11px] text-slate-400 md:inline-flex">
           <GitBranch aria-hidden="true" className="h-3 w-3" />
-          main
+          {branch}
         </span>
       </div>
 
@@ -70,14 +75,7 @@ export function WorkspaceHeader({ status, projectName, developerMode, onDevelope
           <span className={`h-1.5 w-1.5 rounded-full ${stateDot}`} />
           {stateText}
         </div>
-        <button
-          className="hidden h-8 items-center gap-1.5 rounded-md border border-white/[0.08] px-2.5 text-xs text-slate-300 transition hover:border-white/15 hover:bg-white/[0.04] sm:inline-flex"
-          onClick={() => onNotice("GitHub connection is not enabled in this prototype.")}
-          type="button"
-        >
-          <GitFork aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">GitHub</span>
-        </button>
+        <GithubHeaderChip changes={changes} github={github} onOpen={onOpenGithub} />
         <button
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-coral px-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#ff795c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3"
           disabled={busy}

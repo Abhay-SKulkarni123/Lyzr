@@ -47,10 +47,10 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 ## Tech Stack & Repo Structure
 
 - **Framework**: Next.js 14.2.5 (App Router), React 18, strict TypeScript, Tailwind CSS, lucide-react. **No runtime backend, no added dependencies.**
-- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, plus placeholder `/agents`, `/github`, `/deployment`.
-- **components/**: `workspace/` (the build experience and all build-centric UI), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/`, `github/`, `deployment/` scaffold folders.
-- **lib/**: `auth.ts` (mock localStorage session helpers).
-- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings).
+- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, GitHub integration page `/github`, plus placeholder `/agents`, `/deployment`.
+- **components/**: `workspace/` (the build experience and all build-centric UI), `github/` (GitHub connection, repository/branch pickers, sync, checks, pull request form/details, shared state hook), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/`, `deployment/` scaffold folders.
+- **lib/**: `auth.ts` (mock localStorage session helpers), `github-storage.ts` (GitHub snapshot persistence — key `architect-demo-github`).
+- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings), `github.ts` (GitHub identity, mock repositories, branches, checks, pull requests, notes, helpers).
 - **types/**: reserved; workspace types live in `components/workspace/types.ts`.
 - **docs/**: `MASTER_NOTES.md` and `INTERVIEW_PREP.md` only.
 - **Validation**: `npm run type-check`, `npm run lint`, `npm run build`.
@@ -75,8 +75,11 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 | Simulated source control | `GitPanel`, `CommitHistory` (branch, stage, commit, push, history) | Mocked, local state only |
 | Simulated environment variables | `EnvironmentPanel` (masked values, add/edit/remove) | Mocked, local state only |
 | Developer settings | `DeveloperSettingsPanel` | Informational mock |
+| Simulated GitHub connection | `GithubConnectionModal`, `GithubConnectionCard`, header chip, `/github` page | Functional simulation, persisted in browser |
+| Repository & branch management | `GithubRepositoryPicker`, `GithubBranchPicker` (incl. create-repo / create-branch mocks) | Functional simulation over mock data |
+| Sync / push / pull request flow | `GithubSync`, GitPanel push, `PullRequestDialog`, `PullRequestForm`/`PullRequestDetails`, `GithubChecks` | Simulated; remote never touched |
 | Preview states (idle/busy/ready) | `PreviewStatus` | Functional overlay |
-| GitHub, deployment, real agents | Placeholder buttons/pages | Deferred / not connected |
+| Deployment, real agents | Placeholder buttons/pages | Deferred / not connected |
 | Real AI, code gen, sandbox, terminal exec, backend | — | Deferred / not connected |
 
 ---
@@ -105,6 +108,15 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - **Modified-file union**: `modifiedFiles` = build-touched files (derived from completed activities or the full recipe on `complete`) ∪ developer-mode git `M`/`A` files, so explorer, tabs, and Files view stay consistent.
 - **Every simulated surface is labeled** ("Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") and every command/commit/env write is local React state — no `child_process`, no real git, no secret retrieval, no filesystem access.
 
+### GitHub integration (Phase 5)
+- **Simulation, not integration**: there is no OAuth, no GitHub REST/GraphQL API, no token, no remote repository, no real push/branch/PR/Action. The browser never asks for credentials and never holds dangerous capabilities; every GitHub surface is labeled ("GitHub connection is simulated in prototype mode.", "Pull request is simulated…", "Merge is simulated…").
+- **Mock universe in `data/github.ts`**: identity `githubIdentity` (@abhay-demo, "Abhay (Demo)"), 5 repositories (saas-analytics, architect-demo, customer-portal, startup-landing, internal-tools) with public/private visibility, branches, and descriptions; `githubChecks` (TypeScript, ESLint, Production build, Preview validation — all passing); `seedPullRequests` per repo; typed `GithubSnapshot`; note constants and helpers (`repoById`, `repoFullName`, `dedupeBranches`, `mergeBranches`).
+- **Shared, persisted state via `useGithubState`** (`components/github/useGithubState.ts` + `lib/github-storage.ts`): the hook owns one snapshot (connected identity, selected repo id, branch, last-synced, pushed-head, created PRs/branches/repositories, demo-failure flag) persisted under localStorage key `architect-demo-github`. The workspace header, GitPanel, connection card/modal, and the standalone `/github` page all read the **same** hook-driven state, so navigating between them preserves connection, repo, branch, and PRs — no disconnected mock universes.
+- **Local vs remote boundary**: developer-mode git state stays in `data/developer.ts` / `WorkspaceShell` (working-tree `changes`, `commits`). GitHub state adds only the remote-facing layer. **Single source of branch truth** = `github.branch`; the old separate `gitBranch` was removed. Local `changes`/`commits` were lifted from `GitPanel` into `WorkspaceShell` and passed down as controlled props, keeping the git → GitHub relationship explicit (working tree → commit → push → repo → PR → checks → merge).
+- **Entry points**: a compact `GithubHeaderChip` in the workspace header (Connect / Connected / N changes ready / Syncing…), the GitPanel (connect CTA + GitHub-aware Push + Create PR), and the `/github` page (connection card, repo/branch pickers, sync, working tree, recent commits, PR list with expandable details + merge, checks, disconnect). GitHub is intentionally **not** added to the developer toolbar.
+- **Deterministic failure demo**: a "Simulate demo failures" toggle in the connection modal makes the next connect/sync/push/PR creation fail exactly once with a labeled error + retry affordance — a demo/Q&A aid, never random.
+- **Error handling & a11y**: dialogs trap Escape, focus the close button, use `role="dialog"`/`aria-modal`/labelled ids, and surface status both visually (dots/labels) and for screen readers (`aria-live` sync status).
+
 ### Mock auth (`lib/auth.ts`)
 - Storage key `architect-demo-auth`; value `{ signedIn, user:{name,email} }`. Passwords never stored.
 - Client guards (`RedirectIfAuthed`, `RequireAuth`) with a mounted-state gate to avoid prerender redirect flashes.
@@ -130,6 +142,9 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - **Iteration is first-class**: after a build, the composer invites a change ("Ask Architect to make another change…"); each run appends to recent instructions and build history.
 - **Simple by default, powerful when needed**: Developer mode is opt-in. Unless enabled, the workspace stays the Architect (Prompt → Plan → Agents → Files → Preview) experience — the git/env/settings rails and the Code-first framing only appear when a power user turns them on.
 - **Developer affordances feel real but are clearly safe**: tabs, search-in-file, copy, branch staging, masked env values, and simulated command output read like a professional surface, while persistent labels and local-state-only behavior prevent anyone mistaking the mock for real execution.
+- **GitHub is an integration, not a clone**: the repo picker/branch picker/PR tooling live inside the Architect chrome and reuse existing surfaces (GitPanel, CommitHistory, working-tree data) rather than building a parallel GitHub UI; the header keeps a one-glance status chip instead of a separate nav item.
+- **Connection as a first-class ceremony**: connecting shows a simulated "permissions" screen and OAuth explanation, and disconnecting uses a labeled confirm ("Disconnect GitHub?" · "Your local Architect project will remain unchanged.") — the tap-through UX of a real connection flow with zero real consent.
+- **Cause → effect is visible**: working tree → commit → push ("Pushed to GitHub · saas-analytics · main · a81d3f2 … (simulated)") → PR (Base/Compare) → checks → merge is staged as one coherent flow, so an interviewer can narrate the real product loop from a mock.
 - **Visual system**: dark workspace (`#0b0f19`, surfaces `#10141d`, `#0c1018`), coral primary, mint success, amber busy, rose errors, restrained borders, Lucide icons, compact developer typography.
 
 ---
@@ -138,12 +153,14 @@ Small, focused components in `components/workspace/` that take props (no shared 
 
 ### Functional
 - Routing, auth gating, session persist/restore, dashboard navigation, new-project modal, workspace seeding, prompt submission + duplicate blocking, build lifecycle timeline, agent status derivation, plan/file/history rendering, preview status pills, success & error states, retry, iteration, view switching, file selection/modified markers, responsive collapse, settings section switching, menu dismissal, developer mode toggle + view reset, open-tab lifecycle (add/activate/close, empty-state), file→code links from explorer/Files/file activity, terminal input routing (whitelist only), git stage/commit/push simulation and commit history, env var mask/edit/add/remove, modified-file union (build ∪ git).
+- GitHub connection lifecycle (connect with simulated delay, permissions screen, disconnect confirm card, labeled "Connected as @abhay-demo"), repository search/filter/select + "Create repository" mock, branch picker + "Create branch" mock, 4-phase sync (Syncing → Checking → Comparing → done), push tracking (pushed-head vs HEAD → "up to date / N ready to push"), PR creation (Base/Compare/Title/Description/changed-files/checks) flowing into PR details with simulated merge, simulated "Architect checks" list, deterministic demo-failure toggle + retry, shared GitHub state persisted under `architect-demo-github` across workspace and `/github`, error notices for connect/sync/push/PR.
 
 ### Mocked / simulated
-- Accounts & OAuth, projects/templates data, agents ("Architect", "UI Builder", "Data Agent", "QA Agent"), the entire build lifecycle (timer-driven), file changes (markers only — no files written), plan/recent-instruction/history persistence, preview updates (preview stays the static sample), success metrics, terminal/log output, error trigger, npm/git command execution (whitelist → canned output), commits & pushes (random hash, local state only), git branches, environment variable values (mock strings, masked by default), repository file tree & code samples.
+- Accounts & OAuth, projects/templates data, agents ("Architect", "UI Builder", "Data Agent", "QA Agent"), the entire build lifecycle (timer-driven), file changes (markers only — no files written), plan/recent-instruction/history persistence, preview updates (preview stays the static sample), success metrics, terminal/log output, error trigger, npm/git command execution (whitelist → canned output), commits & pushes (random/static hash, local state only), git branches, environment variable values (mock strings, masked by default), repository file tree & code samples.
+- GitHub OAuth handshake, remote repositories, actual branch switching/creation, real pushes, real pull requests and merges, GitHub Actions checks, webhook/status updates, rate limits, GitHub identity (@abhay-demo is fictional), all repository/PR data.
 
 ### Not implemented (later phases)
-- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, real git (commits/pushes/branches), real environment infrastructure, GitHub integration, deployment, backend/database, middleware auth.
+- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, real git (commits/pushes/branches), real environment infrastructure, real GitHub (API, OAuth, remote repos, PRs, Actions, webhooks), deployment, backend/database, middleware auth.
 
 ---
 
@@ -164,6 +181,9 @@ Replaced the 4-step build timer with a full simulated agentic lifecycle: state m
 ### Phase 4 — Developer Mode (done)
 Expanded the workspace Prompt → Plan → Agents → Files → Build → Preview into Prompt → Plan → Agents → Files → Code → Terminal → Git → Environment → Preview. Added an opt-in Architect/Developer toggle, a code-first editor with open tabs (superseded `CodeSurface`), a simulated terminal (whitelisted commands only), simulated source control (stage/commit/push + history), a masked environment-variables panel, an informational settings panel, a recursive filterable file explorer, and clickable file activity linking builds → code. All developer data centralized in `data/developer.ts`; all simulated surfaces clearly labeled (no child-process, no real git/env/filesystem).
 
+### Phase 5 — GitHub Integration (done)
+Added a convincing, clearly-labeled GitHub integration on top of the simulated local git: project → git → connect GitHub (simulated permissions + OAuth explanation, identity @abhay-demo) → choose repository (5 mock repos, search/filter/select, Create-repository mock) → choose branch (select + create mock) → review working tree (existing local changes, no duplicated state) → push ("Pushed to GitHub · repo · branch · hash message (simulated)") → create pull request (Base/Compare/Title/Description, changed files, passing checks) → review PR with simulated Architect checks (TypeScript/ESLint/Production build/Preview validation) → simulated merge. Added a compact header GitHub status chip, GitHub-aware GitPanel push/PR, and a standalone `/github` page sharing one persisted hook (`useGithubState` + `lib/github-storage.ts`, key `architect-demo-github`) with the workspace. No OAuth/API/tokens/repo operations: GitHub state is lifted as a remote-facing layer over Phase 4's local git (single branch source of truth; local git `changes`/`commits` lifted into `WorkspaceShell` as controlled props). Deterministic "demo failure" toggle + labeled error/retry; disconnect confirm leaves local git untouched.
+
 ---
 
 ## Important Trade-offs
@@ -174,6 +194,8 @@ Expanded the workspace Prompt → Plan → Agents → Files → Build → Previe
 - **Client guards vs middleware**: correct for a browser-only mock session; middleware is the production upgrade.
 - **Read-only code/files**: communicates the workflow without fake editing or unsafe writes.
 - **Simulated terminal/git/env**: delivers the code-first surface — copy, tabs, masked values, staging, commits — with zero execution risk; every surface is labeled and commands are routed through a whitelist that returns canned output.
+- **Simulated GitHub over real GitHub**: reproduces the entire connect → repo → branch → push → PR → checks → merge ceremony as a first-class integration with zero credentials, network calls, or remote side effects; the typed snapshot + localStorage persistence swap cleanly behind a real API adapter.
+- **Shared GitHub state vs isolated mock islands**: the workspace and `/github` read one hook + one localStorage snapshot so presenters can navigate between them without re-connecting; local git data stays separate so the local/remote boundary mirrors production.
 - **Preview is static**: components can narrate changes but not render them; acknowledged in the UI.
 - **Route-group layout split** and **query-param seeding** keep each surface decoupled.
 
@@ -181,11 +203,13 @@ Expanded the workspace Prompt → Plan → Agents → Files → Build → Previe
 
 ## Current Limitations
 
-- No persistence beyond `architect-demo-auth` (projects, prompts, history, commits, env edits vanish on reload).
+- No persistence beyond `architect-demo-auth` and `architect-demo-github` (projects, prompts, history, commits, env edits vanish on reload).
+- GitHub state is per-browser: navigation between workspace and `/github` shares state through localStorage, but there is no server, no cross-device sync, and no real GitHub account/remote.
 - Build does not change the preview, files, or code — all simulated.
 - Terminal, git, and environment panels are mock-only: no real execution, no real commits/pushes, no real secrets.
+- GitHub integration is fully simulated: no OAuth, no API calls, no real repositories/pushes/branches/PRs/checks/merges, no rate limits or webhooks.
 - Agents are presentational; no orchestration, no LLM, no tool calls.
-- `/workspace` is the only dynamic route (reads query params).
+- `/workspace` and `/github` are the only dynamic routes (query params; client-state).
 - Accessibility/testing/shadcn polish deferred to a later phase.
 
 ---
@@ -197,6 +221,7 @@ Expanded the workspace Prompt → Plan → Agents → Files → Build → Previe
 - **Sandbox execution**: ephemeral Docker containers for generated code; preview served from a sandboxed build.
 - **Real-time**: WebSocket/SSE streaming of agent activity, terminal, and logs.
 - **Storage**: PostgreSQL (projects, builds), S3/object store (artifacts), git via GitHub API.
+- **GitHub (Phase 5 → production)**: add real OAuth (GitHub App) with a backend token store, replace `data/github.ts`/`lib/github-storage.ts` behind an API adapter (`/app/api/github/*`), poll or subscribe to webhooks for repo/branch/PR/check status, run real `git` in the sandbox, and surface real Actions checks in `GithubChecks`.
 - **Auth**: Auth.js (credentials/email or GitHub OAuth) + HTTP-only cookies + middleware.
 - **Deployment**: Vercel/Netlify APIs or a custom CI runner.
 - **Monitoring**: Sentry + structured logs.

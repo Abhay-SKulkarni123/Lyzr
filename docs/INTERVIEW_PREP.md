@@ -16,6 +16,8 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Client-side guards**: `RequireAuth` / `RedirectIfAuthed` with a mounted gate to avoid hydration mismatch and redirect flashes.
 - **Query-parameter seeding**: `/workspace?prompt=&project=` keeps a route stateless and deep-linkable; server resolves project id → name.
 - **Mock session**: localStorage flag (`architect-demo-auth`), passwords never stored; `lib/auth.ts` isolates the boundary for a future real provider.
+- **Shared persisted GitHub state**: `useGithubState` owns one typed `GithubSnapshot` (connected, repoId, branch, lastSyncedAt, pushedHead, created PRs/branches/repositories, demoFailures) persisted under `architect-demo-github`; the workspace header, GitPanel, connection card/modal, and `/github` page all read the same hook — one state pool, no mock islands.
+- **Local/remote boundary**: local git lives in `data/developer.ts` (working tree, commits) and `WorkspaceShell`; GitHub adds only the remote-facing layer. Single source of branch truth is `github.branch` (the old separate `gitBranch` was removed), and local `changes`/`commits` were lifted into the shell and passed to `GitPanel` as controlled props.
 - **Reusable primitives**: `Menu` (click-outside + Escape + `role`), `StatusBadge`; derivation of statuses (agent/file/plan) from shared state rather than scattered booleans.
 
 ## Important Product/UX Concepts
@@ -25,6 +27,8 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Iteration over creation**: the composer persists after a build and invites a change; history treats the project as a living artifact — and Developer mode lets that artifact be inspected (tabs) and "committed" (simulated git).
 - **Context retention**: preview never disappears behind a loader during builds.
 - **Honesty in a prototype**: every simulated surface is labeled ("Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") so nothing is claimed as real.
+- **GitHub as an integration, not a clone**: repo/branch pickers and PR tooling live inside Architect chrome and reuse existing surfaces (GitPanel, CommitHistory, working-tree data) instead of building a parallel GitHub UI; a one-glance header chip keeps presence light.
+- **Cause → effect is visible**: working tree → commit → push ("Pushed to GitHub · saas-analytics · main · a81d3f2 … (simulated)") → PR (Base/Compare) → checks → merge is one coherent, narratable loop.
 
 ## Why These Decisions Were Made
 
@@ -34,7 +38,7 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Simulated agents**: deliver the full product UX and story without credential, cost, or safety risk during a bounded prototype.
 - **Client-only state**: the build lifecycle is one-screen interaction; a store/backend is only worth adding once state is shared or persisted. Tabs and git/env local state follow the same rule.
 - **No new dependencies**: everything is achievable with React + Next + Tailwind + lucide-react.
-- **No dangerous browser capabilities**: dev tools are simulated instead of wired to `child_process`, real git, `.env` files, or the filesystem — the prototype never hands the browser arbitrary execution, secret access, or repo mutation.
+- **No dangerous browser capabilities**: dev tools are simulated instead of wired to `child_process`, real git, `.env` files, or the filesystem — the prototype never hands the browser arbitrary execution, secret access, or repo mutation. The GitHub flow extends this rule: no OAuth flow, no token, no API calls from the browser.
 
 ---
 
@@ -113,11 +117,11 @@ No. "Commit" generates a random 7-hex hash, prepends it to a local commit-histor
 
 ## Mocked-Functionality Questions
 
-1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, npm/git command output, commits/pushes/branches, environment variables, preview updates, metrics, error trigger.
-2. **How do you mark mocks honestly?** UI labels ("Prototype mode", "Build activity is simulated", "Read-only prototype", "Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") and this docs file.
+1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, npm/git command output, commits/pushes/branches, environment variables, preview updates, metrics, error trigger, plus the entire GitHub layer: OAuth consent, repositories, branch switching/creation, sync, pushes, pull requests and merges, checks, and identity (@abhay-demo).
+2. **How do you mark mocks honestly?** UI labels ("Prototype mode", "Build activity is simulated", "Read-only prototype", "Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.", "GitHub connection is simulated in prototype mode.", "Pull request is simulated…", "Merge is simulated…") and this docs file.
 3. **What breaks if you remove the timer?** The lifecycle never advances — which is exactly what a real event source must replace; the component already accepts events conceptually.
 4. **Is the preview changed by the prompt?** No. The prompt seeds the initial instruction and composer, but the sample preview stays static; the UI states checks haven't changed it.
-5. **Can a user really commit or push?** Only locally: simulated commits (random hash prepended to history) and push notices live in React state and reset on reload; nothing touches the real repository.
+5. **Can a user really commit or push?** No — locally simulated only. Commits (random hash prepended to a local history array) and pushes (a `pushedHead` recorded in the GitHub snapshot) live in browser state and reset on a cleared localStorage; nothing touches a real repository and no token is ever requested or stored.
 
 ## Agent Questions
 
@@ -139,8 +143,55 @@ No. "Commit" generates a random 7-hex hash, prepends it to a local commit-histor
 3. How would you add real auth? Auth.js + HTTP-only cookie `session` + middleware `matcher` on `(app)`, swap `signInMock` for server actions/API.
 4. How is project state shared? Not yet — workspace receives a seed via query params; a real app uses project context loaded per run.
 
-## GitHub / Deployment Questions (relevant)
+## Phase 5 / GitHub Integration Q&A
 
-1. Are GitHub/Deploy real? No — header affordances explain placeholder status; `/github` and `/deployment` are scaffold stubs; the workspace Git panel is a simulated surface on top of mock data.
-2. How would Git fit? Each completed build maps to a commit (version = v4, v5…); the Git panel already models the working tree → staged → commit → history pipeline, foreshadowing a real GitHub integration and CI/CD reacting to commits.
+### Why is GitHub important for an AI-builder product like Architect?
+Because AI-generated code only becomes trustworthy and collaborative once it enters a real developer loop. GitHub provides: version history (every build = a commit), review (pull requests + checks) so generated work is vetted before it ships, and a collaboration surface (branches, issues, reviews) for humans and agents to work together. For a product story, "Architect built it" needs to lead to "…and it is versioned, reviewed, and deployable" — that is what the GitHub integration narrates.
+
+### How would real GitHub OAuth work here?
+Create a GitHub App (or OAuth App) registered with redirect URL `/api/auth/github/callback`. The Connect button redirects to GitHub's consent screen with the requested scopes; GitHub returns an authorization code to the callback; the backend exchange exchanges it for an access token (PKCE for public clients, or confidential client secret) and stores it server-side; the frontend receives only an identity + a session. The prototype's simulated permission screen mocks exactly this ceremony.
+
+### Why must the browser never hold a GitHub token?
+Any token in the browser is exfiltratable by XSS, exposed browser extensions, or devtools, and it can be impersonated by third-party scripts. GitHub tokens grant real write access to repositories. The secure pattern is: frontend talks only to your API, the API holds the user's token (encrypted at rest, scoped, short-lived with refresh), and every mutating call is authorizable server-side. The prototype honors this by never even asking for a token.
+
+### How would repositories be fetched in production?
+`GET /api/github/repositories` on your server calls the GitHub API with the stored user token (`GET /user/repos?affiliation=owner,collaborator`), filters on your product's needs, and returns a typed list the picker already renders (`GithubRepository` maps to `{ id, name, owner, visibility, defaultBranch, branches }`). Branches load per repo via `GET /repos/:owner/:name/branches`, cached briefly because that endpoint is chatty.
+
+### How does branch state stay in sync in production?
+The single source of branch truth is the server's repo state: when the user selects a repo/branch, the server returns the canonical default branch and the live branch list (the picker's `mergeBranches` handles locally-created names). Switching branches re-fetches the tree/latest commit; a webhook or short poll updates the "pushed head / up to date / N ahead" status instead of the local snapshot.
+
+### How do local git commits map to GitHub?
+The local working tree → staged → commit → history model in GitPanel is exactly what a real git integration exposes. In production the sandbox's git repo has the GitHub remote configured; "Commit" runs a real `git commit`, and "Push" runs `git push origin <branch>` using a credential helper, then records the pushed HEAD so the UI can show "Pushed to GitHub · repo · branch · hash message". The prototype just stores `pushedHead` — same shape, no remote.
+
+### How does pull request creation work in production?
+The form already collects Base/Compare/Title/Description. Production normalizes the branch refs (protect against `base === compare`), calls `POST /repos/:owner/:name/pulls` with the stored token, then treats the returned PR number as the id — the details view (author, commits, changed files, checks, status) renders from `GET /pulls/:number`. Webhooks (see below) keep that view live.
+
+### How does GitHub Actions integrate?
+Checks are the visible contract: production subscribes to `check_run` and `check_suite` events (or polls `GET /commits/:ref/status`), so `GithubChecks` shows real per-commit statuses (queued/in_progress/completed, per-check) instead of the four static passing "Architect checks". A generated app could even receive a workflow file as part of the build so CI validates each new commit.
+
+### How would webhooks update the UI in real time?
+On push, open a PR, or merge, GitHub fires a webhook to your server (`/api/webhooks/github`); the server validates the SHA-256 signature, updates the run/project record, and broadcasts an event over SSE/WebSocket to subscribed clients. The prototypes's `sync()` phases (Syncing → Checking → Comparing) and the PR status badge are the exact points where those pushed events would be rendered.
+
+### What about GitHub rate limits?
+Unauthenticated API usage is dead in minutes (60 req/hr); with a token you get 5,000/hr. Repos, branches, and check statuses are chatty, so production caches them (Redis, TTL) and batches stats into a project summary the UI reads instead of firing one call per box. The prototype sidesteps this entirely by never calling the API.
+
+### What permission scopes are needed?
+Minimal: `repo` (or narrower `repo` subsets for private-repo read/write + pull requests) and `user:email` if we ever display account emails. Read-only surfaces could use `public_repo`. The connection modal's three permission rows (read repos / create & update PRs / manage deploy keys) are the honest version of this scope ask, shown before consent rather than hidden in a popup.
+
+### Where are tokens stored, and how are they protected?
+Server-side only — encrypted at rest, swapped for short-lived access tokens with refresh, scoped to the minimum, deletable (revoke). The browser holds a session cookie or short-lived session token, never the GitHub token. The prototype's "stored only in this browser under `architect-demo-github`" note is the conscious opposite of the production design, chosen precisely because nothing real is stored.
+
+### How does local git state relate to the new GitHub integration?
+GitHub is a remote-facing layer over the existing local simulation: local `changes`/`commits` stay in `WorkspaceShell` (lifted from `GitPanel` as controlled props), while `useGithubState` owns everything remote (connection, repo, branch, pushed head, PRs) in one persisted snapshot shared by the header, GitPanel, and `/github`. Both surfaces read the same branch value — that single source of truth is what production would get from the server.
+
+### Why mock GitHub at all instead of leaving a placeholder?
+A placeholder tells no product story; a proven integration tells the real flow and lets an interviewer see the exact UX a real GitHub feature will have. Mocking it with a typed snapshot + adapters costs nothing real and keeps the "no tokens in the browser" boundary honest while reproducing the connect → repo → branch → push → PR → checks → merge loop end-to-end.
+
+### What is the production upgrade path for this mock?
+1) GitHub App OAuth via `/app/api/github/*` with server-side token storage. 2) Replace `lib/github-storage.ts` persistence with API calls for the same snapshot fields. 3) Real pushes in the sandbox git with a remote; capture pushed HEAD server-side. 4) PR and check endpoints wired to `PullRequestForm`/`PullRequestDetails`/`GithubChecks`. 5) Webhooks + SSE to make `sync()` and status badges live. The data model (`GithubSnapshot`, `GithubPullRequest`, `GithubCheck`) is the API contract, so components change as little as possible.
+
+## Deployment Questions (relevant)
+
+1. Are GitHub/Deploy real? No — GitHub is a fully simulated but complete integration flow (see Phase 5 section above); `/deployment` remains a scaffold stub; the header Deploy button explains a later phase.
+2. How does Git relate to Deploy? Each completed build maps to a commit (version = v4, v5…); the Git panel models working tree → staged → commit → history and now pushes to the simulated GitHub repo, foreshadowing CI/CD reacting to commits.
 3. What would "Deploy" do? Point the build artifact at a target (Vercel/Netlify API) and stream status; today it's a disabled-during-build button plus a notice.

@@ -1,10 +1,20 @@
 import { Check, GitBranch, GitCommitHorizontal, GitPullRequest, LoaderCircle, RotateCw, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { gitChanges, gitHistory, gitMockBranches, gitSimulatedNote, type GitChange, type GitChangeState, type GitCommit } from "@/data/developer";
+import { useState } from "react";
+import { gitSimulatedNote, type GitChange, type GitChangeState, type GitCommit } from "@/data/developer";
+import { repoFullName } from "@/data/github";
+import type { GithubState } from "@/components/github/useGithubState";
+import { GithubStatus } from "@/components/github/GithubStatus";
 import { CommitHistory } from "./CommitHistory";
 
 type GitPanelProps = {
+  changes: GitChange[];
+  onChangesChange: (changes: GitChange[]) => void;
+  commits: GitCommit[];
+  onCommitsChange: (commits: GitCommit[]) => void;
+  github: GithubState;
   onNotice: (message: string) => void;
+  onOpenGithub: () => void;
+  onOpenPullRequest: (compare: string) => void;
 };
 
 const stateStyle: Record<GitChangeState, { label: string; className: string }> = {
@@ -33,46 +43,32 @@ function ChangeRow({ change, toggle }: { change: GitChange; toggle: (file: strin
   );
 }
 
-export function GitPanel({ onNotice }: GitPanelProps) {
-  const [branch, setBranch] = useState<string>(gitMockBranches[0]);
-  const [changes, setChanges] = useState<GitChange[]>(gitChanges);
+export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, github, onNotice, onOpenGithub, onOpenPullRequest }: GitPanelProps) {
   const [message, setMessage] = useState("");
   const [committing, setCommitting] = useState(false);
   const [pushing, setPushing] = useState(false);
-  const [commits, setCommits] = useState<GitCommit[]>(gitHistory);
-  const timeoutRef = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    },
-    []
-  );
 
   const staged = changes.filter((change) => change.staged).length;
   const unstaged = changes.length - staged;
 
   function toggle(file: string) {
-    setChanges((prev) => prev.map((change) => (change.file === file ? { ...change, staged: !change.staged } : change)));
+    onChangesChange(changes.map((change) => (change.file === file ? { ...change, staged: !change.staged } : change)));
   }
 
   function stageAll() {
-    setChanges((prev) => prev.map((change) => ({ ...change, staged: true })));
+    onChangesChange(changes.map((change) => ({ ...change, staged: true })));
   }
 
   function commit() {
     if (committing || changes.length === 0) return;
     setCommitting(true);
-    timeoutRef.current = window.setTimeout(() => {
+    window.setTimeout(() => {
       const hash = Array.from({ length: 7 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
-      const gitCommit: GitCommit = {
-        hash,
-        message: message.trim() || "Update dashboard components",
-        author: "Abhay Sharma",
-        time: "Just now",
-      };
-      setCommits((prev) => [gitCommit, ...prev]);
-      setChanges([]);
+      onCommitsChange([
+        { hash, message: message.trim() || "Update dashboard components", author: "Abhay Sharma", time: "Just now" },
+        ...commits,
+      ]);
+      onChangesChange([]);
       setMessage("");
       setCommitting(false);
       onNotice(`Committed ${hash} in simulated history.`);
@@ -81,11 +77,29 @@ export function GitPanel({ onNotice }: GitPanelProps) {
 
   function push() {
     if (pushing) return;
+    if (!github.connected) {
+      onOpenGithub();
+      return;
+    }
     setPushing(true);
-    timeoutRef.current = window.setTimeout(() => {
+    window.setTimeout(() => {
+      const head = commits[0];
+      const ok = github.push(head?.hash ?? "");
       setPushing(false);
-      onNotice(`Pushed to origin/${branch}.`);
-    }, 900);
+      if (ok) {
+        onNotice(`Pushed to GitHub · ${repoFullName(github.repo)} · ${github.branch}${head ? ` · ${head.hash} ${head.message}` : ""} (simulated).`);
+      } else {
+        onNotice(github.syncError ?? "Push failed — try again.");
+      }
+    }, 600);
+  }
+
+  function openPullRequest() {
+    if (!github.connected) {
+      onOpenGithub();
+      return;
+    }
+    onOpenPullRequest(github.branch);
   }
 
   return (
@@ -98,21 +112,34 @@ export function GitPanel({ onNotice }: GitPanelProps) {
           </h2>
           <p className="mt-1 text-[11px] text-slate-500">Simulated git workflow for this project.</p>
         </div>
-        <label className="flex items-center gap-2 text-[9px] text-slate-500">
-          <GitBranch aria-hidden="true" className="h-3 w-3" />
-          <span className="sr-only">Branch</span>
-          <select
-            className="h-7 rounded-md border border-white/[0.1] bg-[#0b0f19] px-2 text-[10px] text-slate-300 outline-none focus:border-coral/40"
-            value={branch}
-            onChange={(event) => setBranch(event.target.value)}
-          >
-            {gitMockBranches.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex items-center gap-2">
+          {github.connected ? (
+            <GithubStatus label={`Connected · @${github.identity.login}`} tone="success" />
+          ) : (
+            <button
+              className="rounded-md border border-white/[0.1] px-2 py-1 text-[9px] text-slate-400 transition hover:border-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
+              onClick={onOpenGithub}
+              type="button"
+            >
+              Connect GitHub
+            </button>
+          )}
+          <label className="flex items-center gap-2 text-[9px] text-slate-500">
+            <GitBranch aria-hidden="true" className="h-3 w-3" />
+            <span className="sr-only">Branch</span>
+            <select
+              className="h-7 rounded-md border border-white/[0.1] bg-[#0b0f19] px-2 text-[10px] text-slate-300 outline-none focus:border-coral/40"
+              value={github.branch}
+              onChange={(event) => github.selectBranch(event.target.value)}
+            >
+              {github.branches.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5 text-[9px] text-slate-500">
@@ -164,25 +191,33 @@ export function GitPanel({ onNotice }: GitPanelProps) {
               {committing ? "Committing…" : "Commit"}
             </button>
             <button
-              aria-label="Push to origin"
-              className="flex h-7 items-center gap-1.5 rounded-md border border-white/[0.12] px-3 text-[10px] font-semibold text-slate-300 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
+              aria-label={github.connected ? "Push to GitHub" : "Connect GitHub to push"}
+              className="flex h-7 items-center gap-1.5 rounded-md border border-white/[0.12] px-3 text-[10px] font-semibold text-slate-300 transition hover:border-white/25 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
               disabled={pushing}
               onClick={push}
               type="button"
             >
               {pushing ? <LoaderCircle aria-hidden="true" className="h-3 w-3 animate-spin" /> : <Upload aria-hidden="true" className="h-3 w-3" />}
-              {pushing ? "Pushing…" : "Push"}
+              {pushing ? "Pushing…" : github.connected ? "Push to GitHub" : "Push"}
             </button>
             <button
-              aria-label="Open pull request (mock)"
+              aria-label="Create pull request"
               className="flex h-7 items-center gap-1.5 rounded-md border border-white/[0.12] px-3 text-[10px] font-semibold text-slate-300 transition hover:border-white/25 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
-              onClick={() => onNotice("Pull request opened in simulated mode.")}
+              onClick={openPullRequest}
               type="button"
             >
               <GitPullRequest aria-hidden="true" className="h-3 w-3" />
               PR
             </button>
           </div>
+          {github.connected && (
+            <p className="mt-2 flex items-center gap-1.5 font-mono text-[9px] text-slate-600">
+              <GitCommitHorizontal aria-hidden="true" className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                {github.repo ? repoFullName(github.repo) : "—"} · {github.branch}
+              </span>
+            </p>
+          )}
           <p className="mt-3 text-[8px] leading-4 text-slate-600">{gitSimulatedNote} Commits and pushes are simulated locally and never touch the real repository.</p>
         </div>
       </div>

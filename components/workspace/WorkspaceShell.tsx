@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { GithubConnectionModal } from "@/components/github/GithubConnectionModal";
+import { PullRequestDialog } from "@/components/github/PullRequestDialog";
+import { useGithubState } from "@/components/github/useGithubState";
 import { ActivityPanel, ActivitySummary } from "./ActivityPanel";
 import { CodeEditor } from "./CodeEditor";
 import { DashboardPreview } from "./DashboardPreview";
@@ -25,7 +28,7 @@ import {
   seedVersions,
   type BuildVersion,
 } from "@/data/builds";
-import { gitChanges } from "@/data/developer";
+import { gitChanges, gitHistory, type GitChange, type GitCommit } from "@/data/developer";
 
 const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
 
@@ -55,11 +58,16 @@ export function WorkspaceShell({
   const [notice, setNotice] = useState("");
   const [shouldFailNext, setShouldFailNext] = useState(false);
   const [failedPrompt, setFailedPrompt] = useState("");
+  const [changes, setChangesState] = useState<GitChange[]>(gitChanges);
+  const [commits, setCommitsState] = useState<GitCommit[]>(gitHistory);
+  const [githubModalOpen, setGithubModalOpen] = useState(false);
+  const [prDialog, setPrDialog] = useState<{ open: boolean; compare: string }>({ open: false, compare: "feature/analytics" });
 
   const latestPromptRef = useRef(latestPrompt);
   latestPromptRef.current = latestPrompt;
   const noticeTimer = useRef<number | null>(null);
   const autoRunHandled = useRef(false);
+  const github = useGithubState({ onNotice: showNotice });
 
   const recipe = buildIndex === 0 ? initialRecipe : iterationRecipe;
   const flat = useMemo(() => getRecipeActivities(recipe), [recipe]);
@@ -77,11 +85,11 @@ export function WorkspaceShell({
         if (index < cutoff && activity.filePath) set.add(activity.filePath);
       });
     }
-    gitChanges.forEach((change) => {
+    changes.forEach((change) => {
       if (change.state !== "D") set.add(change.file);
     });
     return set;
-  }, [buildStatus, activeStep, flat, files]);
+  }, [buildStatus, activeStep, flat, files, changes]);
 
   // Start a build automatically when arriving with a seeded prompt.
   useEffect(() => {
@@ -121,6 +129,11 @@ export function WorkspaceShell({
         setBuildStatus("complete");
         setBuildIndex((index) => index + 1);
         setVersions((prev) => [...prev, { version: `v${prev.length + 1}`, label: labelFromPrompt(latestPromptRef.current) }]);
+        setChangesState((prev) => {
+          const paths = Array.from(new Set(flat.map((activity) => activity.filePath).filter((path): path is string => Boolean(path))));
+          const missing = paths.filter((path) => !prev.some((change) => change.file === path));
+          return missing.length > 0 ? [...missing.map((path) => ({ file: path, state: "M" as const, staged: false })), ...prev] : prev;
+        });
         setTabs((prev) => (prev.includes("app/page.tsx") ? prev : [...prev, "app/page.tsx"]));
         setActivePath("app/page.tsx");
         setView("code");
@@ -197,9 +210,13 @@ export function WorkspaceShell({
   return (
     <main className="flex h-dvh min-h-0 min-w-[320px] flex-col overflow-hidden bg-[#0b0f19] text-slate-200">
       <WorkspaceHeader
+        branch={github.branch}
+        changes={changes.length}
         developerMode={developerMode}
+        github={github}
         onDeveloperModeChange={toggleDeveloperMode}
         onNotice={showNotice}
+        onOpenGithub={() => setGithubModalOpen(true)}
         projectName={projectName}
         status={buildStatus}
       />
@@ -232,7 +249,18 @@ export function WorkspaceShell({
           )}
           {(view === "git" || view === "environment" || view === "settings" || view === "files") && (
             <div className="workspace-scrollbar min-h-0 flex-1 overflow-auto p-3 sm:p-5 lg:p-7">
-              {view === "git" && <GitPanel onNotice={showNotice} />}
+              {view === "git" && (
+                <GitPanel
+                  changes={changes}
+                  commits={commits}
+                  github={github}
+                  onChangesChange={setChangesState}
+                  onCommitsChange={setCommitsState}
+                  onNotice={showNotice}
+                  onOpenGithub={() => setGithubModalOpen(true)}
+                  onOpenPullRequest={(compare) => setPrDialog({ open: true, compare })}
+                />
+              )}
               {view === "environment" && <EnvironmentPanel onNotice={showNotice} />}
               {view === "settings" && <DeveloperSettingsPanel />}
               {view === "files" && <FilesOverview modifiedFiles={modifiedFiles} onOpenFile={openFileByPath} />}
@@ -257,6 +285,16 @@ export function WorkspaceShell({
           <div className="absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-lg border border-white/10 bg-[#202734] px-3 py-2 text-center text-[10px] text-slate-200 shadow-xl" role="status">
             {notice}
           </div>
+        )}
+        {githubModalOpen && <GithubConnectionModal github={github} onClose={() => setGithubModalOpen(false)} />}
+        {prDialog.open && (
+          <PullRequestDialog
+            changedFiles={changes.length}
+            defaultCompare={prDialog.compare}
+            github={github}
+            onClose={() => setPrDialog((prev) => ({ ...prev, open: false }))}
+            onNotice={showNotice}
+          />
         )}
       </div>
 
