@@ -117,45 +117,64 @@ The market has a gap: "no-code" platforms limit control; traditional IDEs are ov
 
 ---
 
-## Phase 1 (Future) — Product Core
+## Phase 1 — Architect Workspace
 
-*To be filled as Phase 1 completes.*
+### What Was Implemented
+- Replaced the `/workspace` placeholder with the prompt-to-preview product workspace.
+- Added a top bar for Architect, the sample project, branch context, and clearly labeled GitHub/deployment/settings placeholders.
+- Added Preview, Code, Terminal, and Files views, a sample file explorer, a read-only code surface, and static terminal output.
+- Created a browser-framed sample analytics dashboard as the central preview.
+- Added a multiline prompt composer and a client-side build activity simulation with four visible stages.
+- Added responsive layouts that keep the preview and prompt visible on smaller screens while reducing secondary navigation.
+- Repaired the global Tailwind/PostCSS wiring so the workspace uses the existing design tokens.
 
-### Features to Implement
-1. Workspace with file tree, code editor, preview pane
-2. Prompt input with mock code generation
-3. Build pipeline with status flow
-4. Agent activity sidebar
-5. Terminal panel with mock command output
-6. GitHub integration panel (mock)
-7. Environment variables manager
-8. Deployment flow (mock)
-9. Authentication (mock)
+### Why the Workspace Is Structured This Way
+- **Prompt at the bottom, result in the center**: This keeps the next action obvious and makes the output of a prompt immediately visible.
+- **Separate generated app from Architect controls**: Browser chrome and a distinct light dashboard canvas help users understand what belongs to the generated product versus the builder.
+- **Progressive developer controls**: Files are visible as project context, while Code and Terminal are available as separate views without overwhelming the default Preview experience.
+- **Responsive activity summary**: The full build panel is useful on wide screens; a compact row preserves status when horizontal space is limited.
 
-### Key Technical Concepts (Planned)
-- React context for global state
-- File tree with expandable directories
-- Monaco Editor integration
-- Pane resizing with drag handles
-- Tab management for file/code navigation
+### Important Technical Decisions and Trade-offs
+- Workspace state is local React state in a client component. This is enough for a single-page prototype and avoids adding a state library or backend.
+- Build stages are driven by a short timer and explicit `ready` / `building` / `complete` state. This demonstrates feedback states but is not an orchestration state machine backed by work queues.
+- Shared, focused components live in `components/workspace/`; the root page only composes the workspace.
+- Code and terminal are read-only static samples. Monaco, editable files, real commands, and generated code are intentionally deferred.
+- The analytics preview is illustrative static content, so submitted prompts do not change the displayed application.
+- The existing `slate` design token conflicted with numbered Tailwind shade utilities. Giving it a `DEFAULT` color keeps the design token and shade scale available together.
 
-### Important Product Concepts (Planned)
-- "Idea → Prompt → Build → Preview → Deploy" flow
-- Mode switching (Simple / Advanced)
-- Build status indicators (idle → planning → generating → building → previewing → deploying → deployed)
-- Agent activity log with expandable steps
+### Functional vs. Mocked
+- **Functional**: view navigation, file selection and Code view navigation, prompt submission, mock context toggle, build-stage animation, completion feedback, and adaptive panel layout.
+- **Mocked/static**: project/repository state, analytics data, preview content, code, terminal log, build activity, GitHub, deployment, and settings.
+- **Not implemented in Phase 1**: real AI calls, code generation, sandboxing, a real terminal, GitHub APIs, deployment, user accounts, and a backend/database.
 
-### Interview Questions (Anticipated)
-- "How does the file tree sync with the code editor?"
-- "What happens when a user edits code in Monaco?"
-- "How does the build pipeline handle errors?"
-- "What's the state machine for deployment?"
+### Likely Interviewer Questions and Concise Answers
 
-### Suggested Answers (Planned)
-- File tree emits click events → editor updates content
-- Monaco calls `setValue()` with new code
-- Build pipeline has status enum with valid transitions
-- Deploy state machine: idle → queued → building → deploying → deployed/error
+1. **Why is Prompt → Build → Preview the primary workspace flow?**
+   It gives creators an immediate action and visible payoff. The prompt remains available while the preview occupies the largest part of the workspace.
+
+2. **How does the prompt currently generate the dashboard?**
+   It does not generate code. Submission starts a timed mock run and updates the activity stages; the static sample preview remains unchanged, and the UI states that clearly.
+
+3. **Why show build activity if there is no AI orchestration?**
+   The prototype demonstrates where progress and transparency belong in the product. The activity is labeled simulated so it is not mistaken for real agent work.
+
+4. **How does the file explorer connect to Code view?**
+   Selecting a sample file updates the selected path and switches to Code view, which displays a read-only illustrative snippet for that path.
+
+5. **Why is the preview separate from the builder UI?**
+   Browser chrome and a light analytics app canvas establish a clear boundary between Architect and the application being previewed.
+
+6. **How did you handle responsive layouts?**
+   The file explorer hides at narrower widths, the activity sidebar collapses to a status row, dashboard navigation adapts, and the prompt composer remains in the layout.
+
+7. **Why use local component state rather than Context or Redux?**
+   The interaction is confined to one workspace route. Local state keeps the prototype simple; shared state management can be introduced when multiple routes or persisted projects require it.
+
+8. **What would be required to make the preview genuinely live?**
+   A real generation pipeline would need to persist project files, run builds in an isolated sandbox, stream status/logs, and serve the resulting app safely. That infrastructure is outside this phase.
+
+9. **What is the next sensible phase after this?**
+   Add genuinely useful developer tools and connect the mock adapter boundaries to real project state incrementally, while keeping orchestration, GitHub, deployment, and auth as separately scoped work.
 
 ---
 

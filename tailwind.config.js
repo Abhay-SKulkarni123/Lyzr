@@ -12,7 +12,9 @@ module.exports = {
     extend: {
       colors: {
         ink: "#0B0F19",
-        slate: "#1E293B",
+        slate: {
+          DEFAULT: "#1E293B",
+        },
         zinc: "#52525B",
         sand: "#F5F0E8",
         coral: "#FF6B4A",

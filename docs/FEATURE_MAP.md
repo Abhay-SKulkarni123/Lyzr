@@ -6,17 +6,17 @@
 
 | Feature | Implementation | Planned Screen | Status |
 |---------|---------------|----------------|---------|
-| Natural language prompting | PromptInput component (state) → Mock code generation | Workspace → Prompt Panel | 🔧 Functional |
-| Build & preview (generated code) | CodePreview iframe (static) → Simulated build pipeline | Workspace → Preview Pane | 🔧 Functional |
-| Agent orchestration | AgentActivitySidebar (mock) → Simulated agent workflow | Workspace → Agent Sidebar | 📋 Mocked |
-| GitHub integration | GitHubConnect panel (mock) → Mock repo browser | Workspace → Git Panel | 📋 Mocked |
-| Environment variables | EnvironmentPanel (mock) → Manage .env | Workspace → Environment Panel | 🔧 Functional |
-| Terminal access | TerminalPanel (mock) → Simulated command output | Workspace → Terminal Pane | 📋 Mocked |
-| Deployment | DeployButton with status flow (mock) → Mock deployment pipeline | Workspace → Deployment Dialog | 📋 Mocked |
-| File system | FileTree component (mock) → Mock file structure | Workspace → File Tree | 🔧 Functional |
-| Code editor | Monaco editor via next/dynamic (functional) → Show/hide | Workspace → Code Pane | 🔧 Functional |
-| Authentication | Mock session (useState) → Login modal | Landing page / Workspace | 📋 Mocked |
-| UI/UX (progressive complexity) | Mode toggle, pane layout, resizable panels | All pages | 🔧 Functional |
+| Natural language prompting | Prompt composer → timed mock build (no generation) | Workspace → Prompt Composer | 🔧 Functional prototype |
+| Build & preview | Static Northstar dashboard with simulated build state; prompt does not alter preview | Workspace → Preview | 📋 Static preview / mocked build |
+| Agent activity | Four simulated build stages with compact responsive status | Workspace → Build Activity | 📋 Mocked |
+| GitHub integration | Header affordance with explanatory prototype message | Workspace → GitHub button | 📋 Not connected |
+| Environment variables | Deferred beyond the Phase 1 prompt-to-preview experience | Later phase | ⏳ Deferred |
+| Terminal access | Read-only sample Next.js output; commands are not executed | Workspace → Terminal view | 📋 Static mock |
+| Deployment | Header affordance with later-phase message | Workspace → Deploy button | 📋 Not connected |
+| File system | Sample project tree; file selection opens matching illustrative code view | Workspace → Files / Explorer | 🔧 Functional prototype |
+| Code editor | Read-only sample snippets; no Monaco or editing | Workspace → Code view | 📋 Static mock |
+| Authentication | Deferred; workspace is accessible without a session | Later phase | ⏳ Deferred |
+| UI/UX (progressive complexity) | Preview default with Code, Terminal, Files, and responsive activity | Workspace | 🔧 Functional prototype |
 | Documentation system | README.md, docs/*.md, INTERVIEW_NOTES.md, PHASE_LOG.md | docs/ folder | ✅ Implemented |
 | IDE-style interface | Header, sidebar, content area structure | All pages | 🔧 Functional |
 | Responsive design | Tailwind responsive utilities | All pages | 🔧 Functional |
@@ -25,96 +25,54 @@
 ## Key Feature Details
 
 ### 1. Natural Language Prompting
-- **Description**: Large prompt input with voice recording, markdown support, examples, context memory
-- **User flows**: 
-  - Non-technical: Submit prompt → System shows plan → Approve or iterate
-  - Technical: Submit prompt → Inspect generated plan → Modify agents → Configure parameters
-- **Status**: Functional prototype (mock response parsing)
-- **Mock vs Real**: Responses are static fixtures parsed for syntax. No AI backend.
+- **Description**: Persistent multiline composer with Build action, helper text, keyboard submission, and a mock context toggle.
+- **User flow**: Enter a request → observe simulated build activity → return to the unchanged sample preview.
+- **Status**: Functional interaction prototype.
+- **Mock vs Real**: No AI backend, prompt parsing, file generation, or context upload.
 
 ### 2. Code Preview & Build Pipeline
-- **Description**: Live preview of generated application in an iframe; a “Build” button triggers status flow.
-- **Features**: 
-  - Auto-refresh on code change (simulated)
-  - Real-time compilation progress (mock)
-  - Build logs in terminal panel
-- **Status**: Functional preview area; build status mock
-- **Mock vs Real**: No actual compilation; static HTML + state.
+- **Description**: Browser-framed sample analytics application with KPI cards, revenue visualization, traffic sources, and transactions.
+- **Features**: Preview is the default view; Build runs a timed four-step client-side simulation.
+- **Status**: Static sample preview with a functional simulated status flow.
+- **Mock vs Real**: Preview does not execute generated code or respond to prompt content; no compiler is run.
 
-### 3. Agent Activity Dashboard
-- **Description**: Sidebar showing AI agent status, progress, and logs.
-- **Features**:
-  - Agent lifecycle: queued → planning → generating → building → testing → deploying
-  - Expandable logs per step
-  - Manual control: Pause, Resume, Retry
-  - Simulated latency for realistic feel
-- **Status**: UI built, mock data populated
-- **Mock vs Real**: No real LLM calls; fixture responses.
+### 3. Build Activity
+- **Description**: Sidebar communicates request understanding, planning, interface building, and checks.
+- **Features**: Current stage is emphasized, completed stages receive check marks, and small screens use a compact status row.
+- **Status**: Functional timed UI simulation.
+- **Mock vs Real**: No agents, LLM calls, expandable logs, pause/retry controls, or real checks.
 
 ### 4. File System Browser
-- **Description**: Tree view of generated application files with expand/collapse.
-- **Features**:
-  - Click file → open in Code pane
-  - Right-click context menu (New File, Rename, Delete)
-  - Simulated file operations (no real FS)
-- **Status**: FileTree component functional, mock data
-- **Mock vs Real**: File operations are mocked.
+- **Description**: Representative sample project tree and a file overview.
+- **Features**: Selecting a file opens its read-only illustrative snippet in Code view.
+- **Status**: Functional navigation over static fixture data.
+- **Mock vs Real**: No real project filesystem or file operations.
 
 ### 5. Code Editor
-- **Description**: Monaco Editor for editing source files (read-only for prototypes, editable for user changes).
-- **Features**:
-  - Syntax highlighting for supported languages (TS/JS, HTML, CSS)
-  - Linting (basic)
-  - Undo/redo (mock for editable sections)
-- **Status**: Imported component, functional
-- **Mock vs Real**: Real Monaco instance but mock data.
+- **Description**: Read-only sample source view for the selected project file.
+- **Status**: Static code presentation; Monaco and editing are deferred.
+- **Mock vs Real**: Samples do not correspond to the dashboard preview runtime.
 
 ### 6. Terminal Panel
-- **Description**: Simulates a command-line interface with a mock shell.
-- **Features**:
-  - Type commands → see mock output
-  - Command history
-  - Simulate `npm install`, `git status`, `npm run build`
-- **Status**: UI component built, mock command runner
-- **Mock vs Real**: No real shell.
+- **Description**: Read-only sample startup output shown in Terminal view.
+- **Status**: Static terminal mock.
+- **Mock vs Real**: No command input, shell, command history, or execution.
 
 ### 7. GitHub Integration
-- **Description**: Connect to GitHub via OAuth (mocked).
-- **Features**:
-  - Repo picker (mock)
-  - Branch selector
-  - Pull request status (mock)
-- **Status**: UI for connection, mock repository list
-- **Mock vs Real**: No API calls.
+- **Description**: Header affordance explains that connection is not enabled.
+- **Status**: Placeholder only.
+- **Mock vs Real**: No OAuth, repository picker, or API calls.
 
 ### 8. Environment Variables Manager
-- **Description**: UI to view, edit, and simulate `.env` file.
-- **Features**:
-  - List key-value pairs
-  - Add/remove/edit entries
-  - Validate format (basic)
-  - Simulate reload (mock)
-- **Status**: Form component functional
-- **Mock vs Real**: No actual env loading.
+- **Status**: Deferred; not part of the Phase 1 workspace implementation.
 
 ### 9. Deployment System
-- **Description**: One-click deploy with visual status pipeline.
-- **Features**:
-  - Target: Local (mock), Production (mock), Staging (mock)
-  - Deploy logs (mock)
-  - Rollback (mock)
-- **Status**: UI with mock pipeline flow
-- **Mock vs Real**: No actual deployment.
+- **Description**: Deploy button explains that deployment belongs to a later phase.
+- **Status**: Placeholder only.
+- **Mock vs Real**: No deploy targets, pipeline, or deployment API.
 
 ### 10. Authentication
-- **Description**: Login / Signup / Logout (mocked session).
-- **Features**:
-  - Email/password mock
-  - "Remember me" (mock)
-  - Session persistence (localStorage)
-  - Protected routes
-- **Status**: Auth UI created, session mock
-- **Mock vs Real**: No backend validation.
+- **Status**: Deferred; no authentication UI or session behavior is implemented in Phase 1.
 
 ### 11. Component Library (shadcn/ui where useful)
 - **Description**: Consistent, accessible UI primitives.
@@ -125,10 +83,10 @@
 
 ## Implementation Priorities
 
-1. **Core Experience (MVP)**: Landing, navigation, workspace, prompt input, preview, file tree, code editor.
-2. **Developer Tools**: Terminal, environment variables, GitHub mock, agents sidebar.
-3. **Collaboration/Production**: Deployment, authentication, API layer.
-4. **Polish**: Responsive design, accessibility, component library.
+1. **Phase 1 core experience**: Prompt composer, simulated build activity, sample preview, file navigation, responsive workspace.
+2. **Later developer tools**: Editable code, real terminal, environment variables, agent orchestration, GitHub integration.
+3. **Later production capabilities**: Real generation/build execution, deployment, authentication, API/backend.
+4. **Ongoing polish**: Accessibility, testing, and component primitives as the product expands.
 
 ## Notes on Mock Data
 

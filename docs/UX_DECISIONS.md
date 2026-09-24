@@ -68,16 +68,13 @@
 
 **Problem**: Users need instant visual feedback on changes.
 
-**Decision**: The preview pane is always visible and updates in real-time as code changes. Three view modes:
-- **Preview**: Interactive iframe of the running app
-- **Code**: Side-by-side file tree + editor
-- **Split**: 50/50 preview + code
+**Decision**: Preview is the default and primary canvas. The workspace provides Preview, Code, Terminal, and Files views; the Phase 1 preview is a static sample application rather than a live iframe.
 
 **Why**: Immediate feedback loop is essential for both user types.
 
 **Alternative**: Separate "Preview" tab.
 
-**Trade-off**: Screen real estate pressure on small displays. Mitigated by responsive layouts.
+**Trade-off**: Screen real estate pressure on small displays. The file explorer is hidden on narrower screens and build activity collapses to a compact status row; the preview and prompt composer remain available.
 
 ---
 
@@ -85,16 +82,13 @@
 
 **Problem**: Build and deploy processes are opaque.
 
-**Decision**: Explicit state machine with visual indicators:
-- `idle` → `planning` → `generating` → `building` → `previewing` → `deploying` → `deployed`
-- Each state has a distinct icon, color, and message
-- Errors show in-context with retry actions
+**Decision**: Show explicit build states with distinct icons, colors, and status messages. The intended product lifecycle can grow through planning, generation, build, preview, and deployment; the Phase 1 prototype only simulates request understanding, planning, interface building, and checks.
 
 **Why**: Users always know system status and next action.
 
 **Alternative**: Generic progress bar.
 
-**Trade-off**: More states to design, but better UX.
+**Trade-off**: More states to design, but better UX. In Phase 1 the timer only demonstrates the interaction; it is not connected to an AI service, build runner, or deployment process.
 
 ---
 
@@ -104,16 +98,24 @@
 
 **Problem**: How to arrange Prompt, Code, Preview, Terminal, Agents?
 
-**Decision**: Resizable three-pane layout:
-- **Left**: File Tree / Agent Activity / Git / Environment (tabbed)
-- **Center**: Code Editor / Preview (tabbed)
-- **Right**: Terminal / Console / Build Log (tabbed)
+**Decision**: A compact three-area layout on wide screens:
+- **Left**: Sample project file tree
+- **Center**: Preview, Code, Terminal, or Files view, selected from a workspace toolbar
+- **Right**: Build activity and the latest instruction
 
 **Why**: Matches familiar IDE patterns. Panes can be collapsed.
 
 **Alternative**: Single pane with mode switching.
 
-**Trade-off**: More complex layout logic. Required for technical user workflow.
+**Trade-off**: More complex layout logic. Phase 1 uses fixed panel widths rather than resizable splitters. Secondary panels collapse on smaller screens to preserve the main preview and prompt.
+
+### Phase 1 Prompt-to-Preview Implementation
+
+- The prompt composer is persistent at the bottom of `/workspace`; submitting starts a visible timed mock build.
+- The preview is a realistic but static analytics dashboard. It does not change based on prompt content.
+- Code is a read-only sample and the terminal shows static output. Selecting a file switches to its illustrative code view.
+- GitHub, deployment, project switching, and settings are presented as affordances with explanatory prototype messages, not connected integrations.
+- The optional context control only changes its prototype UI state; it does not upload or attach files.
 
 ### Color & Visual Language
 

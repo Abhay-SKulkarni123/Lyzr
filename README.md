@@ -68,24 +68,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Current Status
 
-**Phase 0 — Foundation**: Project initialized with clean structure, documentation system, and environment setup. No product UI built yet.
+**Phase 1 — Architect Workspace**: The `/workspace` route now demonstrates the prompt → simulated build → sample preview experience, with project files and read-only Code/Terminal views. It is a frontend prototype; prompts do not generate or change the sample app.
 
 ## Mocked vs Functional Features
 
 | Feature | Status |
 |---------|--------|
-| Project structure | ✅ Functional |
-| Landing/Dashboard page | ✅ Functional |
-| Navigation | ✅ Functional |
-| AI agent orchestration | 📋 Mocked |
-| GitHub integration | 📋 Mocked |
-| Deployment pipeline | 📋 Mocked |
-| Authentication | 📋 Mocked |
-| Code preview | 🔧 Functional (static) |
+| Workspace navigation and responsive layout | ✅ Functional |
+| Prompt entry and timed build-state interaction | 🔧 Functional prototype |
+| Generated-app preview | 📋 Static sample; not generated from prompts |
+| File explorer and read-only code samples | 🔧 Functional prototype over mock data |
+| Terminal output | 📋 Static sample; commands do not execute |
+| Build activity | 📋 Simulated; no AI agents or real checks |
+| GitHub, deployment, authentication, backend | ⏳ Deferred / not connected |
 
 ## Future Improvements
 
-- Phase 1: Core workspace (file tree, code editor, preview, prompt input)
-- Phase 2: Agent activity, terminal, environment variables, GitHub mock
-- Phase 3: Authentication, real deployment, shadcn/ui components
-- Phase 4: Real AI orchestration, Docker sandbox, WebSocket real-time updates
+- Later phases: editable code and real file state, agent orchestration, executable sandbox/terminal, GitHub, deployment, authentication, and backend services

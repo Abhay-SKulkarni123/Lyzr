@@ -69,11 +69,56 @@
 
 ---
 
-## Phase 1 (Future)
+## Phase 1 — Architect Workspace (Completed)
 
-**Status**: Pending
+**Status**: Completed
 
-**Goal**: Build the core workspace (file tree, code editor, preview, prompt input, build pipeline, agent activity).
+**Goal**: Deliver the first product experience at `/workspace`: Prompt → Build → Preview, while making the project structure and simulated work visible to both creators and developers.
+
+**Work Completed**:
+- Replaced the `/workspace` placeholder with a responsive dark workspace featuring Architect branding, project and branch context, GitHub/deploy/settings affordances, and Preview / Code / Terminal / Files views.
+- Added a mock project file explorer. Selecting a file opens a read-only sample in Code view; the Files view gives a broader project overview.
+- Built a distinct browser-framed Northstar Analytics sample app preview with KPI cards, a revenue chart, traffic sources, and recent transactions. The preview content is static sample UI.
+- Added a prominent multiline prompt composer with a Build action, keyboard submission, an optional mock project-context toggle, and clear helper text.
+- Implemented a timed, client-side build simulation that advances through request understanding, planning, interface building, and checks. Activity labels explicitly identify the run as mocked and explain that no code is generated.
+- Added a compact activity status for narrower screens and kept the preview and composer available across viewport sizes.
+- Wired the existing Tailwind palette into the app by correcting the global CSS, importing it in the root layout, and adding the root PostCSS config needed to process Tailwind.
+- Updated the feature map, UX decisions, README, and interview notes to distinguish the prototype behavior from later-phase work.
+
+**Files Created/Changed**:
+- Created `components/workspace/`: `WorkspaceShell.tsx`, `WorkspaceHeader.tsx`, `WorkspaceToolbar.tsx`, `FileExplorer.tsx`, `DashboardPreview.tsx`, `ActivityPanel.tsx`, `PromptComposer.tsx`, `CodeSurface.tsx`, `FilesOverview.tsx`, and `types.ts`.
+- Created root `postcss.config.js` for Tailwind and Autoprefixer.
+- Changed `app/workspace/page.tsx`, `app/layout.tsx`, `app/globals.css`, and `tailwind.config.js`.
+- Updated `README.md`, `docs/PHASE_LOG.md`, `docs/INTERVIEW_NOTES.md`, `docs/UX_DECISIONS.md`, and `docs/FEATURE_MAP.md`.
+
+**Important Decisions**:
+1. **Prompt → Build → Preview is the primary flow**: The prompt remains visible at the bottom and the generated-app preview is the main canvas, so the product is understandable immediately on opening `/workspace`.
+2. **Keep complexity available but secondary**: File navigation is visible on wide layouts; Code, Terminal, and Files are explicit view tabs rather than competing with Preview by default.
+3. **Simulate state, not AI**: A short client-side timer makes activity legible without implying that an LLM, code generator, test runner, or sandbox exists.
+4. **Read-only developer surfaces**: Code and terminal views communicate the intended workflow with static sample content, avoiding fake editing or shell execution.
+5. **No new runtime dependencies**: The implementation uses the existing Next.js, React, Tailwind, TypeScript, and Lucide packages.
+
+**Responsive Behavior**:
+- At extra-wide widths the file explorer, preview, and build activity panel sit beside one another.
+- On medium widths the file explorer is hidden and the activity panel becomes a compact status row.
+- On smaller widths the preview occupies the available canvas, its analytics navigation adapts, and the prompt composer remains available.
+
+**Functional vs. Mocked**:
+- Functional: view switching, selecting a sample file, prompt entry and submission, simulated build-stage transitions, context-toggle affordance, and responsive layout.
+- Mocked/static: project data, Git branch and save status, analytics app and chart, code samples, terminal output, build steps, GitHub connection, deployment, and settings.
+- Not implemented: code generation, live preview updates, real AI orchestration, real shell execution, GitHub APIs, deployment infrastructure, authentication, or a backend.
+
+**Trade-offs / Problems Encountered**:
+- The original global stylesheet contained JavaScript config text and was not imported by the app layout, so Tailwind styles could not be relied on. It was replaced with actual global CSS, imported from the root layout, and given the project-level PostCSS config required for Tailwind.
+- The custom `slate` palette token could mask standard Tailwind `slate-*` shades. It now defines a `DEFAULT` value while retaining the familiar numbered shades used by the workspace.
+- The dashboard is intentionally a rich static example rather than output from the submitted prompt; build completion says so explicitly to avoid overstating prototype capability.
+- Existing staged `.next` deletions were present before Phase 1 work and were kept separate from this phase.
+
+**Validation**:
+- `npm run type-check` — passed.
+- `npm run lint` — passed with no warnings or errors.
+- `npm run build` — passed; `/workspace` is statically prerendered.
+- `git diff --cached --check` — passed with no whitespace errors.
 
 ---
 
