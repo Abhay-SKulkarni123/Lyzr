@@ -10,14 +10,28 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
+import { isBuildPhase, type BuildStatus } from "./types";
 
 type WorkspaceHeaderProps = {
-  isBuilding: boolean;
+  status: BuildStatus;
   projectName: string;
   onNotice: (message: string) => void;
 };
 
-export function WorkspaceHeader({ isBuilding, projectName, onNotice }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ status, projectName, onNotice }: WorkspaceHeaderProps) {
+  const busy = isBuildPhase(status);
+  const stateText = busy
+    ? "Building…"
+    : status === "complete"
+    ? "Build complete"
+    : status === "error"
+    ? "Build failed"
+    : "Preview running";
+  const stateDot = busy
+    ? "animate-pulse bg-amber-400"
+    : status === "error"
+    ? "bg-rose-400"
+    : "bg-mint";
   return (
     <header className="relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#10141d] px-4 md:px-6">
       <div className="flex min-w-0 items-center gap-3 md:gap-5">
@@ -49,8 +63,8 @@ export function WorkspaceHeader({ isBuilding, projectName, onNotice }: Workspace
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
         <div className="mr-1 hidden items-center gap-1.5 text-[11px] text-slate-400 sm:flex">
-          <span className={`h-1.5 w-1.5 rounded-full ${isBuilding ? "animate-pulse bg-amber-400" : "bg-mint"}`} />
-          {isBuilding ? "Building" : "Preview running"}
+          <span className={`h-1.5 w-1.5 rounded-full ${stateDot}`} />
+          {stateText}
         </div>
         <button
           className="hidden h-8 items-center gap-1.5 rounded-md border border-white/[0.08] px-2.5 text-xs text-slate-300 transition hover:border-white/15 hover:bg-white/[0.04] sm:inline-flex"
@@ -62,7 +76,7 @@ export function WorkspaceHeader({ isBuilding, projectName, onNotice }: Workspace
         </button>
         <button
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-coral px-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#ff795c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3"
-          disabled={isBuilding}
+          disabled={busy}
           onClick={() => onNotice("Deployment is planned for a later phase.")}
           type="button"
         >
@@ -86,7 +100,7 @@ export function WorkspaceHeader({ isBuilding, projectName, onNotice }: Workspace
           <CircleHelp aria-hidden="true" className="h-4 w-4" />
         </button>
         <span className="sr-only" aria-live="polite">
-          {isBuilding ? "Architect is building your application" : "Architect is ready"}
+          {busy ? "Architect is building your application" : status === "error" ? "The build failed" : "Architect is ready"}
         </span>
       </div>
     </header>

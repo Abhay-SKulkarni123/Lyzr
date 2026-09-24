@@ -10,6 +10,7 @@ export default function WorkspacePage({
   searchParams: { prompt?: string; project?: string; new?: string };
 }) {
   const initialPrompt = searchParams.prompt || defaultPrompt;
+  const autoRun = Boolean(searchParams.new && searchParams.prompt);
 
   let projectName = defaultProject;
   if (searchParams.project) {
@@ -17,5 +18,5 @@ export default function WorkspacePage({
     projectName = matched ? matched.name : searchParams.project;
   }
 
-  return <WorkspaceShell initialPrompt={initialPrompt} projectName={projectName} />;
+  return <WorkspaceShell initialPrompt={initialPrompt} projectName={projectName} autoRun={autoRun} />;
 }

@@ -1,5 +1,5 @@
 import { Braces, Eye, Files, TerminalSquare } from "lucide-react";
-import type { WorkspaceView } from "./types";
+import { isBuildPhase, type BuildStatus, type WorkspaceView } from "./types";
 
 const views: { id: WorkspaceView; label: string; icon: typeof Eye }[] = [
   { id: "preview", label: "Preview", icon: Eye },
@@ -11,9 +11,10 @@ const views: { id: WorkspaceView; label: string; icon: typeof Eye }[] = [
 type WorkspaceToolbarProps = {
   activeView: WorkspaceView;
   onChange: (view: WorkspaceView) => void;
+  status?: BuildStatus;
 };
 
-export function WorkspaceToolbar({ activeView, onChange }: WorkspaceToolbarProps) {
+export function WorkspaceToolbar({ activeView, onChange, status = "idle" }: WorkspaceToolbarProps) {
   return (
     <nav
       aria-label="Workspace views"
@@ -40,8 +41,12 @@ export function WorkspaceToolbar({ activeView, onChange }: WorkspaceToolbarProps
         })}
       </div>
       <div className="hidden items-center gap-2 text-[11px] text-slate-500 sm:flex">
-        <span className="h-1.5 w-1.5 rounded-full bg-mint" />
-        Changes saved
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${
+            isBuildPhase(status) ? "animate-pulse bg-amber-400" : status === "error" ? "bg-rose-400" : "bg-mint"
+          }`}
+        />
+        {isBuildPhase(status) ? "Agentic build in progress" : status === "error" ? "Build failed" : "Changes saved"}
       </div>
     </nav>
   );
