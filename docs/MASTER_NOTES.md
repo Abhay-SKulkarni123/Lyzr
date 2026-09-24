@@ -37,7 +37,7 @@ Democratize application building by bridging the gap between natural-language pr
 1. Landing (`/`) → Sign in (`/login` or `/signup`) → Dashboard hub (`/dashboard`).
 2. Dashboard: greeting + stats → build-from-prompt composer, or browse projects/templates.
 3. New Project modal (`/projects`, `/templates`) → routes to `/workspace` seeded with `?project=` + `?prompt=` + `new=1`.
-4. `/workspace`: type/for the seeded prompt → watch the simulated agentic build → iterate with another prompt (repeat cycle).
+4. `/workspace`: type/fire the seeded prompt → watch the simulated agentic build → iterate with another prompt (repeat cycle). Switching to **Developer mode** reveals code-first tabs (Code/Terminal/Files) plus Git, Environment, and Settings surfaces for inspecting and "committing" the built work.
 5. `/settings`: profile / preferences / notifications / sign-out.
 
 Guest entry is also available — `/workspace` itself is not auth-gated (it receives context via query params).
@@ -50,7 +50,7 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 - **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, plus placeholder `/agents`, `/github`, `/deployment`.
 - **components/**: `workspace/` (the build experience and all build-centric UI), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/`, `github/`, `deployment/` scaffold folders.
 - **lib/**: `auth.ts` (mock localStorage session helpers).
-- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history).
+- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings).
 - **types/**: reserved; workspace types live in `components/workspace/types.ts`.
 - **docs/**: `MASTER_NOTES.md` and `INTERVIEW_PREP.md` only.
 - **Validation**: `npm run type-check`, `npm run lint`, `npm run build`.
@@ -68,9 +68,15 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 | Build plan, agent activity, file activity | Activity panel (`AgentActivity`, `BuildPlan`, `FileActivity`) | Functional simulation |
 | Prompt iteration + recent instructions + build history | `WorkspaceShell` state, `BuildHistory` | Functional local state |
 | Build success / error + retry | `WorkspaceShell`, `BuildStatus`, composer | Functional (deterministic trigger) |
-| File explorer / code / terminal / files views | `FileExplorer`, `CodeSurface`, `TerminalSurface`, `FilesOverview` | Read-only mock |
+| File explorer / code / terminal / files views | `FileExplorer` (recursive tree + filter), `CodeEditor` + `CodeTabs`, `TerminalPanel`, `FilesOverview` | Read-only mock |
+| Developer mode toggle + developer toolbar | `DeveloperModeToggle`, `DeveloperToolbar` (Git / Environment / Settings) | Functional local state |
+| Code tabs & open-file navigation | `WorkspaceShell` open-tabs model, `CodeTabs`, links from explorer/files/activity | Functional local state |
+| Simulated terminal | `TerminalPanel` + `data/developer.ts` whitelist (`npm run *`, `git status`) | Mocked output only |
+| Simulated source control | `GitPanel`, `CommitHistory` (branch, stage, commit, push, history) | Mocked, local state only |
+| Simulated environment variables | `EnvironmentPanel` (masked values, add/edit/remove) | Mocked, local state only |
+| Developer settings | `DeveloperSettingsPanel` | Informational mock |
 | Preview states (idle/busy/ready) | `PreviewStatus` | Functional overlay |
-| GitHub, deployment, environment, real agents | Placeholder buttons/pages | Deferred / not connected |
+| GitHub, deployment, real agents | Placeholder buttons/pages | Deferred / not connected |
 | Real AI, code gen, sandbox, terminal exec, backend | — | Deferred / not connected |
 
 ---
@@ -89,7 +95,15 @@ The build lifecycle lives in **`WorkspaceShell`** (client state, one component) 
 
 ### Component strategy
 Small, focused components in `components/workspace/` that take props (no shared store):
-`BuildStatus` (pill + summary), `BuildPlan`, `AgentActivity`, `FileActivity`, `BuildHistory`, `PreviewStatus`, `ActivityPanel`/`ActivitySummary`, reworked `PromptComposer`, `CodeSurface`, `FileExplorer`, `FilesOverview`. `WorkspaceShell` owns all build state; children are presentational.
+`BuildStatus` (pill + summary), `BuildPlan`, `AgentActivity`, `FileActivity`, `BuildHistory`, `PreviewStatus`, `ActivityPanel`/`ActivitySummary`, reworked `PromptComposer`, `CodeEditor` + `CodeTabs`, `TerminalPanel`, `GitPanel` + `CommitHistory`, `EnvironmentPanel`, `DeveloperSettingsPanel`, `FileExplorer`, `FilesOverview`, `DeveloperModeToggle`, `DeveloperToolbar`. `WorkspaceShell` owns all build + developer state; children are presentational.
+
+### Developer mode (Phase 4)
+- **Mode toggle**: `DeveloperModeToggle` is a segmented Architect/Developer control (`md+`), with a compact icon-only button below `md` (header has no room at 320px). Toggling Developer off while a developer-only view (git/environment/settings) is active resets the view to Preview.
+- **Views**: `WorkspaceToolbar` renders the four primary views, then — only in Developer mode — a divider-gated `DeveloperToolbar` group (Git / Environment / Settings). The tab strip scrolls horizontally on narrow screens instead of wrapping.
+- **Open-tabs model**: `WorkspaceShell` keeps `tabs: string[]` + `activePath`. Opening a file (explorer, Files view, or a clickable `FileActivity` row) adds a tab and switches to Code view. Closing a tab re-activates the last remaining one; closing all shows the empty Code state ("Select a file from the explorer, the Files view, or the build activity to inspect it.").
+- **`data/developer.ts`**: the single source for all developer mocks — `developerFileTree`, `codeSamples` + `fileLinesFor`, terminal boot/commands/suggestions/`findTerminalCommand`, env vars, git changes/history/branches, settings. Helpers (`basename`, `dirname`, `languageOf`, `languageLabel`) keep JSX free of mock data.
+- **Modified-file union**: `modifiedFiles` = build-touched files (derived from completed activities or the full recipe on `complete`) ∪ developer-mode git `M`/`A` files, so explorer, tabs, and Files view stay consistent.
+- **Every simulated surface is labeled** ("Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") and every command/commit/env write is local React state — no `child_process`, no real git, no secret retrieval, no filesystem access.
 
 ### Mock auth (`lib/auth.ts`)
 - Storage key `architect-demo-auth`; value `{ signedIn, user:{name,email} }`. Passwords never stored.
@@ -114,6 +128,8 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - **Transparent, human activity**: messages read like "Created dashboard navigation" / "Ran mobile spacing checks" — never fake technical logs.
 - **Context retention**: preview stays visible during builds (subtle "Updating preview…" pill) so the user always retains context; no full-screen loaders.
 - **Iteration is first-class**: after a build, the composer invites a change ("Ask Architect to make another change…"); each run appends to recent instructions and build history.
+- **Simple by default, powerful when needed**: Developer mode is opt-in. Unless enabled, the workspace stays the Architect (Prompt → Plan → Agents → Files → Preview) experience — the git/env/settings rails and the Code-first framing only appear when a power user turns them on.
+- **Developer affordances feel real but are clearly safe**: tabs, search-in-file, copy, branch staging, masked env values, and simulated command output read like a professional surface, while persistent labels and local-state-only behavior prevent anyone mistaking the mock for real execution.
 - **Visual system**: dark workspace (`#0b0f19`, surfaces `#10141d`, `#0c1018`), coral primary, mint success, amber busy, rose errors, restrained borders, Lucide icons, compact developer typography.
 
 ---
@@ -121,13 +137,13 @@ Small, focused components in `components/workspace/` that take props (no shared 
 ## Functional vs Mocked
 
 ### Functional
-- Routing, auth gating, session persist/restore, dashboard navigation, new-project modal, workspace seeding, prompt submission + duplicate blocking, build lifecycle timeline, agent status derivation, plan/file/history rendering, preview status pills, success & error states, retry, iteration, view switching, file selection/modified markers, responsive collapse, settings section switching, menu dismissal.
+- Routing, auth gating, session persist/restore, dashboard navigation, new-project modal, workspace seeding, prompt submission + duplicate blocking, build lifecycle timeline, agent status derivation, plan/file/history rendering, preview status pills, success & error states, retry, iteration, view switching, file selection/modified markers, responsive collapse, settings section switching, menu dismissal, developer mode toggle + view reset, open-tab lifecycle (add/activate/close, empty-state), file→code links from explorer/Files/file activity, terminal input routing (whitelist only), git stage/commit/push simulation and commit history, env var mask/edit/add/remove, modified-file union (build ∪ git).
 
 ### Mocked / simulated
-- Accounts & OAuth, projects/templates data, agents ("Architect", "UI Builder", "Data Agent", "QA Agent"), the entire build lifecycle (timer-drive), file changes (markers only — no files written), plan/recent-instruction/history persistence, preview updates (preview stays the static sample), success metrics, terminal/log output, error trigger.
+- Accounts & OAuth, projects/templates data, agents ("Architect", "UI Builder", "Data Agent", "QA Agent"), the entire build lifecycle (timer-driven), file changes (markers only — no files written), plan/recent-instruction/history persistence, preview updates (preview stays the static sample), success metrics, terminal/log output, error trigger, npm/git command execution (whitelist → canned output), commits & pushes (random hash, local state only), git branches, environment variable values (mock strings, masked by default), repository file tree & code samples.
 
 ### Not implemented (later phases)
-- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, GitHub integration, deployment, backend/database, middleware auth.
+- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, real git (commits/pushes/branches), real environment infrastructure, GitHub integration, deployment, backend/database, middleware auth.
 
 ---
 
@@ -145,6 +161,9 @@ Mock auth (`/login`, `/signup`), route groups `(auth)`/`(app)`, dashboard hub pa
 ### Phase 3 — Agentic Build Experience (done)
 Replaced the 4-step build timer with a full simulated agentic lifecycle: state machine, build plan, four agents, human-readable activity, file activity (explorer + panel), preview states, prompt iteration with recent instructions, build history versions, success summary, deterministic error + retry, context-aware composer. Docs consolidated into `MASTER_NOTES.md` + `INTERVIEW_PREP.md`.
 
+### Phase 4 — Developer Mode (done)
+Expanded the workspace Prompt → Plan → Agents → Files → Build → Preview into Prompt → Plan → Agents → Files → Code → Terminal → Git → Environment → Preview. Added an opt-in Architect/Developer toggle, a code-first editor with open tabs (superseded `CodeSurface`), a simulated terminal (whitelisted commands only), simulated source control (stage/commit/push + history), a masked environment-variables panel, an informational settings panel, a recursive filterable file explorer, and clickable file activity linking builds → code. All developer data centralized in `data/developer.ts`; all simulated surfaces clearly labeled (no child-process, no real git/env/filesystem).
+
 ---
 
 ## Important Trade-offs
@@ -154,6 +173,7 @@ Replaced the 4-step build timer with a full simulated agentic lifecycle: state m
 - **Timed simulation**: deterministic and demo-safe; not an orchestration state machine. A real implementation swaps the timer for a server-driven event stream.
 - **Client guards vs middleware**: correct for a browser-only mock session; middleware is the production upgrade.
 - **Read-only code/files**: communicates the workflow without fake editing or unsafe writes.
+- **Simulated terminal/git/env**: delivers the code-first surface — copy, tabs, masked values, staging, commits — with zero execution risk; every surface is labeled and commands are routed through a whitelist that returns canned output.
 - **Preview is static**: components can narrate changes but not render them; acknowledged in the UI.
 - **Route-group layout split** and **query-param seeding** keep each surface decoupled.
 
@@ -161,8 +181,9 @@ Replaced the 4-step build timer with a full simulated agentic lifecycle: state m
 
 ## Current Limitations
 
-- No persistence beyond `architect-demo-auth` (projects, prompts, history vanish on reload).
+- No persistence beyond `architect-demo-auth` (projects, prompts, history, commits, env edits vanish on reload).
 - Build does not change the preview, files, or code — all simulated.
+- Terminal, git, and environment panels are mock-only: no real execution, no real commits/pushes, no real secrets.
 - Agents are presentational; no orchestration, no LLM, no tool calls.
 - `/workspace` is the only dynamic route (reads query params).
 - Accessibility/testing/shadcn polish deferred to a later phase.

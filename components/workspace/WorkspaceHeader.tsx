@@ -10,15 +10,18 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
+import { DeveloperModeToggle } from "./DeveloperModeToggle";
 import { isBuildPhase, type BuildStatus } from "./types";
 
 type WorkspaceHeaderProps = {
   status: BuildStatus;
   projectName: string;
+  developerMode: boolean;
+  onDeveloperModeChange: (enabled: boolean) => void;
   onNotice: (message: string) => void;
 };
 
-export function WorkspaceHeader({ status, projectName, onNotice }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ status, projectName, developerMode, onDeveloperModeChange, onNotice }: WorkspaceHeaderProps) {
   const busy = isBuildPhase(status);
   const stateText = busy
     ? "Building…"
@@ -62,6 +65,7 @@ export function WorkspaceHeader({ status, projectName, onNotice }: WorkspaceHead
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+        <DeveloperModeToggle developerMode={developerMode} onChange={onDeveloperModeChange} />
         <div className="mr-1 hidden items-center gap-1.5 text-[11px] text-slate-400 sm:flex">
           <span className={`h-1.5 w-1.5 rounded-full ${stateDot}`} />
           {stateText}

@@ -33,6 +33,7 @@ type ActivityPanelProps = {
   failureArmed: boolean;
   onArmFailure: () => void;
   onRetry: () => void;
+  onOpenFile?: (path: string) => void;
 };
 
 export function ActivityPanel({
@@ -47,6 +48,7 @@ export function ActivityPanel({
   failureArmed,
   onArmFailure,
   onRetry,
+  onOpenFile,
 }: ActivityPanelProps) {
   const busy = isBuildPhase(status);
   const hasBuild = promptStack.length > 0;
@@ -91,7 +93,7 @@ export function ActivityPanel({
         {hasBuild && (
           <div>
             <SectionLabel>Files</SectionLabel>
-            <FileActivity status={status} activeStep={activeStep} flat={flat} files={files} />
+            <FileActivity status={status} activeStep={activeStep} flat={flat} files={files} onOpenFile={onOpenFile} />
           </div>
         )}
 

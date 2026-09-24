@@ -7,9 +7,10 @@ import { isBuildPhase, type BuildStatus } from "./types";
 type PromptComposerProps = {
   status: BuildStatus;
   onSubmit: (prompt: string) => void;
+  developerMode?: boolean;
 };
 
-export function PromptComposer({ status, onSubmit }: PromptComposerProps) {
+export function PromptComposer({ status, onSubmit, developerMode = false }: PromptComposerProps) {
   const [value, setValue] = useState("");
   const [includeContext, setIncludeContext] = useState(false);
 
@@ -31,7 +32,11 @@ export function PromptComposer({ status, onSubmit }: PromptComposerProps) {
       : busy
       ? "Architect is simulating a build · no code is generated"
       : status === "complete"
-      ? "Build complete — ask Architect for another change."
+      ? developerMode
+        ? "Build complete — inspect files in Code, then commit them in Git."
+        : "Build complete — ask Architect for another change."
+      : developerMode
+      ? "Developer mode is on — Architect still builds; you can inspect and commit the result."
       : "Describe an idea, ask for a change, or start with a blank canvas.";
 
   function submit(event?: FormEvent<HTMLFormElement>) {

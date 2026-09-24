@@ -1,96 +1,163 @@
-import {
-  ChevronDown,
-  FileCode2,
-  FileJson2,
-  FileText,
-  FolderOpen,
-} from "lucide-react";
-import type { ProjectFile } from "./types";
+import { ChevronDown, ChevronRight, FileCode2, FileJson2, FileText, Folder, FolderOpen, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { developerFileTree, filePaths, type FileTreeNode } from "@/data/developer";
 
-const files: ProjectFile[] = [
-  { name: "app", path: "app", kind: "folder" },
-  { name: "page.tsx", path: "app/page.tsx", kind: "file", language: "tsx" },
-  { name: "layout.tsx", path: "app/layout.tsx", kind: "file", language: "tsx" },
-  { name: "globals.css", path: "app/globals.css", kind: "file", language: "css" },
-  { name: "components", path: "components", kind: "folder" },
-  { name: "Overview.tsx", path: "components/Overview.tsx", kind: "file", language: "tsx" },
-  { name: "dashboard", path: "components/dashboard", kind: "folder" },
-  { name: "Sidebar.tsx", path: "components/dashboard/Sidebar.tsx", kind: "file", language: "tsx" },
-  { name: "KpiCard.tsx", path: "components/dashboard/KpiCard.tsx", kind: "file", language: "tsx" },
-  { name: "RevenueChart.tsx", path: "components/dashboard/RevenueChart.tsx", kind: "file", language: "tsx" },
-  { name: "lib", path: "lib", kind: "folder" },
-  { name: "analytics.ts", path: "lib/analytics.ts", kind: "file", language: "ts" },
-  { name: "package.json", path: "package.json", kind: "file", language: "json" },
-];
+const defaultExpanded = new Set(["app", "components", "components/dashboard", "lib"]);
 
-const FileIcon = ({ language }: { language?: string }) => {
-  if (language === "json") return <FileJson2 className="h-3.5 w-3.5 text-amber-300" />;
-  if (language === "css") return <FileText className="h-3.5 w-3.5 text-sky-300" />;
-  return <FileCode2 className="h-3.5 w-3.5 text-coral" />;
-};
-
-function indentFor(path: string): string {
-  if (path.startsWith("components/dashboard/")) return "pl-[50px]";
-  if (path.startsWith("app/") || path.startsWith("components/") || path.startsWith("lib/")) return "pl-[34px]";
-  return "pl-[18px]";
+function FileTypeIcon({ node }: { node: FileTreeNode }) {
+  if (node.path.endsWith(".json")) return <FileJson2 aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-300" />;
+  if (node.path.endsWith(".css")) return <FileText aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-sky-300" />;
+  if (node.path.endsWith(".md")) return <FileText aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-violet-300" />;
+  return <FileCode2 aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-coral" />;
 }
 
-const fileCount = files.filter((file) => file.kind === "file").length;
+type TreeRowProps = {
+  node: FileTreeNode;
+  depth: number;
+  isCollapsed: (path: string) => boolean;
+  toggle: (path: string) => void;
+  selectedFile: string;
+  modifiedFiles: ReadonlySet<string>;
+  onSelect: (path: string) => void;
+};
+
+function TreeRow({ node, depth, isCollapsed, toggle, selectedFile, modifiedFiles, onSelect }: TreeRowProps) {
+  if (node.kind === "folder") {
+    const closed = isCollapsed(node.path);
+    return (
+      <div className={closed ? "" : ""}>
+        <button
+          aria-expanded={!closed}
+          aria-label={`${node.name} folder`}
+          className="flex w-full items-center gap-1.5 rounded px-1 py-[5px] text-left text-[11px] text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
+          onClick={() => toggle(node.path)}
+          style={{ paddingLeft: depth * 14 + 6 }}
+          type="button"
+        >
+          {closed ? (
+            <ChevronRight aria-hidden="true" className="h-3 w-3 shrink-0 text-slate-600" />
+          ) : (
+            <ChevronDown aria-hidden="true" className="h-3 w-3 shrink-0 text-slate-600" />
+          )}
+          {closed ? (
+            <Folder aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          ) : (
+            <FolderOpen aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+          )}
+          <span className="truncate">{node.name}</span>
+        </button>
+        {!closed &&
+          node.children?.map((child) => (
+            <TreeRow
+              key={child.path}
+              depth={depth + 1}
+              isCollapsed={isCollapsed}
+              modifiedFiles={modifiedFiles}
+              node={child}
+              onSelect={onSelect}
+              selectedFile={selectedFile}
+              toggle={toggle}
+            />
+          ))}
+      </div>
+    );
+  }
+  const active = selectedFile === node.path;
+  const modified = modifiedFiles.has(node.path);
+  return (
+    <button
+      aria-current={active ? "true" : undefined}
+      className={`flex w-full items-center gap-2 rounded py-[5px] pr-2 text-left text-[11px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 ${
+        active ? "bg-white/[0.08] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+      }`}
+      onClick={() => onSelect(node.path)}
+      style={{ paddingLeft: depth * 14 + 20 }}
+      type="button"
+    >
+      <FileTypeIcon node={node} />
+      <span className="truncate">{node.name}</span>
+      {modified && <span aria-label="Updated in this build" className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />}
+    </button>
+  );
+}
 
 type FileExplorerProps = {
-  selectedFile: string;
-  onSelect: (file: ProjectFile) => void;
+  selectedFile: string | null;
+  onSelect: (path: string) => void;
   modifiedFiles?: ReadonlySet<string>;
 };
 
 export function FileExplorer({ selectedFile, onSelect, modifiedFiles }: FileExplorerProps) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [query, setQuery] = useState("");
+
+  const allFiles = useMemo(() => filePaths(developerFileTree), []);
+  const matches = useMemo(
+    () => (query.trim() ? allFiles.filter((path) => path.toLowerCase().includes(query.trim().toLowerCase())) : null),
+    [allFiles, query]
+  );
+
+  const isCollapsed = (path: string) => collapsed[path] ?? false;
   const modifiedCount = modifiedFiles?.size ?? 0;
+
   return (
     <aside className="hidden w-[218px] shrink-0 flex-col border-r border-white/[0.07] bg-[#10141d] lg:flex">
-      <div className="flex h-11 items-center justify-between border-b border-white/[0.06] px-4">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-4">
         <span className="text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-500">Project files</span>
         <span className={`text-[9px] ${modifiedCount > 0 ? "text-emerald-300" : "text-slate-600"}`}>
-          {fileCount} files{modifiedCount > 0 ? ` · ${modifiedCount} updated` : ""}
+          {allFiles.length} files{modifiedCount > 0 ? ` · ${modifiedCount} updated` : ""}
         </span>
       </div>
-      <div className="workspace-scrollbar min-h-0 flex-1 overflow-y-auto px-2 py-3">
-        <div className="mb-1 flex items-center gap-1.5 rounded px-2 py-1.5 text-[11px] font-medium text-slate-300">
-          <ChevronDown className="h-3 w-3 text-slate-500" />
-          <FolderOpen className="h-3.5 w-3.5 text-amber-300" />
+      <div className="workspace-scrollbar min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        <label className="relative mb-2 flex items-center">
+          <span className="sr-only">Filter project files</span>
+          <Search aria-hidden="true" className="pointer-events-none absolute left-2 h-3 w-3 text-slate-600" />
+          <input
+            className="w-full rounded-md border border-white/[0.07] bg-[#0b0f19] py-1.5 pl-7 pr-2 text-[10px] text-white outline-none placeholder:text-slate-600 focus:border-coral/40 focus:ring-1 focus:ring-coral/30"
+            placeholder="Filter files…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+        <div className="mb-1 flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium text-slate-300">
+          <FolderOpen aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
           northstar-analytics
         </div>
-        {files.map((file) => {
-          if (file.kind === "folder") {
-            return (
-              <div key={file.path} className={`flex items-center gap-1.5 rounded px-2 py-[7px] text-[11px] text-slate-400 ${indentFor(file.path)}`}>
-                <ChevronDown className="h-3 w-3 text-slate-600" />
-                <FolderOpen className="h-3.5 w-3.5 text-slate-500" />
-                {file.name}
-              </div>
-            );
-          }
-          const active = selectedFile === file.path;
-          const modified = modifiedFiles?.has(file.path) ?? false;
-          return (
+        {matches === null ? (
+          developerFileTree.map((node) => (
+            <TreeRow
+              key={node.path}
+              depth={0}
+              isCollapsed={isCollapsed}
+              modifiedFiles={modifiedFiles ?? new Set()}
+              node={node}
+              onSelect={onSelect}
+              selectedFile={selectedFile ?? ""}
+              toggle={(path) => setCollapsed((prev) => ({ ...prev, [path]: !prev[path] }))}
+            />
+          ))
+        ) : matches.length === 0 ? (
+          <p className="px-2 py-3 text-center text-[10px] text-slate-600">No files match “{query}”.</p>
+        ) : (
+          matches.map((path) => (
             <button
-              key={file.path}
-              className={`flex w-full items-center gap-2 rounded py-[7px] pr-2 text-left text-[11px] transition ${
-                active ? "bg-white/[0.08] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
-              } ${indentFor(file.path)}`}
-              onClick={() => onSelect(file)}
+              key={path}
+              className={`flex w-full items-center gap-2 rounded px-2 py-[5px] pr-2 text-left text-[11px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 ${
+                selectedFile === path ? "bg-white/[0.08] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+              }`}
+              onClick={() => onSelect(path)}
+              style={{ paddingLeft: 18 }}
               type="button"
             >
-              <FileIcon language={file.language} />
-              <span className="truncate">{file.name}</span>
-              {modified && (
-                <span className="ml-auto flex h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" aria-label="Updated in this build" />
-              )}
+              <FileCode2 aria-hidden="true" className="h-3 w-3 shrink-0 text-coral" />
+              <span className="truncate font-mono text-[10px]">{path}</span>
+              {(modifiedFiles?.has(path) ?? false) && <span aria-label="Updated" className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />}
             </button>
-          );
-        })}
+          ))
+        )}
       </div>
-      <div className="border-t border-white/[0.06] px-4 py-3 text-[10px] text-slate-600">
-        <span className="font-mono">{fileCount}</span> files · build updates are simulated
+      <div className="shrink-0 border-t border-white/[0.06] px-4 py-3 text-[10px] text-slate-600">
+        <span className="font-mono">{allFiles.length}</span> files · sample project, read-only
       </div>
     </aside>
   );

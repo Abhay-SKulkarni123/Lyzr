@@ -1,4 +1,19 @@
-export type WorkspaceView = "preview" | "code" | "terminal" | "files";
+export type WorkspaceView =
+  | "preview"
+  | "code"
+  | "terminal"
+  | "files"
+  | "git"
+  | "environment"
+  | "settings";
+
+export const PRIMARY_VIEWS: WorkspaceView[] = ["preview", "code", "terminal", "files"];
+
+export const DEVELOPER_VIEWS: WorkspaceView[] = ["git", "environment", "settings"];
+
+export function isDeveloperView(view: WorkspaceView): boolean {
+  return DEVELOPER_VIEWS.includes(view);
+}
 
 export type BuildStatus =
   | "idle"

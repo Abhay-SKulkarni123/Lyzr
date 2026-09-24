@@ -8,7 +8,11 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 
 - **Next.js 14 App Router**: file-based routing, route groups (`(auth)`, `(app)`) for layout scoping, server vs client components, pages receive `searchParams` synchronously (Next 14).
 - **Typed state machine**: `BuildStatus` union (`idle | understanding | planning | building | checking | complete | error`) drives the workspace; UI derives everything else from a single `activeStep`.
-- **Data-driven simulation**: `data/builds.ts` holds agents, recipes (phases → activities), plan steps, versions; components render data, they do not hardcode build logic.
+- **Data-driven simulation**: `data/builds.ts` + `data/developer.ts` hold agents, recipes, activities, file tree/code samples, terminal/git/env mocks; components render data, they do not hardcode logic.
+- **Whitelist-routed simulated terminal**: `normalizeCommand` → `findTerminalCommand` maps only safe demo commands (`npm run dev/build/lint`, `git status`) to canned output; everything else returns a "simulated" notice — no `child_process`, never user input executed.
+- **Open-tabs editor model**: `WorkspaceShell` owns `tabs: string[]` + `activePath`; explorer/Files/file-activity all funnel into `openFileByPath` (dedupe → activate → switch to Code); close re-activates the last tab, all-closed shows an empty state.
+- **Extended workspace view union**: `WorkspaceView` = primary (preview/code/terminal/files) + developer-only (git/environment/settings); `isDeveloperView` guards the mode-off reset.
+- **Modified-file union**: build-touched files ∪ git `M`/`A` files drive the emerald "updated" dots consistently across explorer, tabs, and Files view.
 - **Client-side guards**: `RequireAuth` / `RedirectIfAuthed` with a mounted gate to avoid hydration mismatch and redirect flashes.
 - **Query-parameter seeding**: `/workspace?prompt=&project=` keeps a route stateless and deep-linkable; server resolves project id → name.
 - **Mock session**: localStorage flag (`architect-demo-auth`), passwords never stored; `lib/auth.ts` isolates the boundary for a future real provider.
@@ -16,11 +20,11 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 
 ## Important Product/UX Concepts
 
-- **Progressive complexity**: non-technical user sees prompt → build → result; technical user can inspect plan → agents → files → code → activity.
+- **Progressive complexity**: non-technical user sees prompt → build → result; technical user can inspect plan → agents → files → code → terminal → git → environment → preview. Developer mode is an explicit opt-in, keeping the default surface "simple by default, powerful when needed."
 - **Transparent activity**: human-readable progress ("Created dashboard navigation") instead of fake logs, builds trust in generated work.
-- **Iteration over creation**: the composer persists after a build and invites a change; history treats the project as a living artifact.
+- **Iteration over creation**: the composer persists after a build and invites a change; history treats the project as a living artifact — and Developer mode lets that artifact be inspected (tabs) and "committed" (simulated git).
 - **Context retention**: preview never disappears behind a loader during builds.
-- **Honesty in a prototype**: every simulated surface is labeled (e.g., "Prototype mode", "Build activity is simulated") so nothing is claimed as real.
+- **Honesty in a prototype**: every simulated surface is labeled ("Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") so nothing is claimed as real.
 
 ## Why These Decisions Were Made
 
@@ -28,8 +32,9 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **TypeScript strict**: safety for a growing state model, better tooling, interview expectation.
 - **Tailwind**: velocity + a deliberate custom palette (ink/coral/mint) that avoids the generic "AI SaaS" look.
 - **Simulated agents**: deliver the full product UX and story without credential, cost, or safety risk during a bounded prototype.
-- **Client-only state**: the build lifecycle is one-screen interaction; a store/backend is only worth adding once state is shared or persisted.
+- **Client-only state**: the build lifecycle is one-screen interaction; a store/backend is only worth adding once state is shared or persisted. Tabs and git/env local state follow the same rule.
 - **No new dependencies**: everything is achievable with React + Next + Tailwind + lucide-react.
+- **No dangerous browser capabilities**: dev tools are simulated instead of wired to `child_process`, real git, `.env` files, or the filesystem — the prototype never hands the browser arbitrary execution, secret access, or repo mutation.
 
 ---
 
@@ -73,6 +78,31 @@ UI simulation renders a deterministic script of states — timing and content ar
 
 ---
 
+## Phase 4 / Developer Mode Q&A
+
+### Why keep Terminal, Git, and Environment simulated rather than wired to real systems?
+The browser must never receive dangerous capabilities — no arbitrary command execution, no real git mutations, no secret retrieval, no filesystem access. A frontend-only prototype has no secure place to run these, so each surface is a faithful mock: the terminal routes input through a whitelist and returns canned output, git commits/pushes mutate local React state only, and env values are mock strings masked by default. The swap path is the same as everywhere else: a server-side executor (sandbox, git API, real env service) that pushes events to the existing UI.
+
+### How does the simulated terminal stay safe?
+`normalizeCommand` canonicalizes input (`trim`, collapse spaces, lowercase) and `findTerminalCommand` matches it against a small whitelist (`npm run dev/build/lint`, `git status`). Unknown commands append the note "Command execution is simulated in prototype mode." — user input is never executed, no `child_process`, nothing beyond string matching happens in the browser.
+
+### Why mask environment variables, and how does that work?
+Secret hygiene should be visible even in a prototype. Each variable renders masked (`••••`) with a per-row eye toggle; `OPENAI_API_KEY` ships unconfigured to show the "Not configured" state. All values are mock strings — no real `.env` is read (the server-side workspace page only resolves query params), and edits are local React state with a notice that nothing persists.
+
+### How does the open-tabs model work, and why not a fixed editor?
+The shell keeps `tabs: string[]` and an `activePath`. Every entry point — file explorer, Files view, and a now-clickable `FileActivity` row — funnels into one `openFileByPath`: dedupe, append, activate, switch to Code. Closing a tab activates the last remaining; closing all reveals a purposeful empty state. This mirrors a real IDE while staying a small, testable state slice — no router coupling.
+
+### Why do FileActivity rows now open files?
+It closes the loop between the build narrative and the developer output: the agent "changed" a file in activity, and a developer clicks it to see what changed (a modified dot + read-only sample). This is the concrete Agent → Code connection the phase was about — artifact inspection instead of a flat status list.
+
+### Why is Developer mode opt-in, and why reset to Preview when toggled off?
+The product has two personas on one canvas. Defaulting to the Architect experience keeps it "simple by default"; Developer mode adds the code-first framing plus Git/Environment/Settings rails ("powerful when needed"). Because developer-only views are meaningless without the mode, turning it off while on one resets to Preview — a small guard that keeps the UI states mutually consistent.
+
+### Related: does the git panel really commit anything?
+No. "Commit" generates a random 7-hex hash, prepends it to a local commit-history list, and clears the working-tree list — all client state. Push and PR fire simulated notices. The data model (working tree → staged → commit → history) is exactly what a real git integration would expose, so the UI is not thrown away when a GitHub API is added.
+
+---
+
 ## Production-Readiness / Architecture Questions
 
 1. **What would production architecture look like?** Next.js API + BullMQ workers + Docker sandbox + Postgres/Redis + object storage + SSE/WebSocket; GitHub for version control; Auth.js for sessions; Vercel/Netlify for deploys; Sentry for monitoring.
@@ -83,10 +113,11 @@ UI simulation renders a deterministic script of states — timing and content ar
 
 ## Mocked-Functionality Questions
 
-1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, preview updates, metrics, error trigger.
-2. **How do you mark mocks honestly?** UI labels ("Prototype mode", "Build activity is simulated", "Read-only sample") and this docs file.
+1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, npm/git command output, commits/pushes/branches, environment variables, preview updates, metrics, error trigger.
+2. **How do you mark mocks honestly?** UI labels ("Prototype mode", "Build activity is simulated", "Read-only prototype", "Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") and this docs file.
 3. **What breaks if you remove the timer?** The lifecycle never advances — which is exactly what a real event source must replace; the component already accepts events conceptually.
 4. **Is the preview changed by the prompt?** No. The prompt seeds the initial instruction and composer, but the sample preview stays static; the UI states checks haven't changed it.
+5. **Can a user really commit or push?** Only locally: simulated commits (random hash prepended to history) and push notices live in React state and reset on reload; nothing touches the real repository.
 
 ## Agent Questions
 
@@ -110,6 +141,6 @@ UI simulation renders a deterministic script of states — timing and content ar
 
 ## GitHub / Deployment Questions (relevant)
 
-1. Are GitHub/Deploy real? No — header affordances explain placeholder status; `/github` and `/deployment` are scaffold stubs.
-2. How would Git fit? Each completed build maps to a commit (version = v4, v5…); build history foreshadows a commit timeline; CI/CD would react to those commits.
+1. Are GitHub/Deploy real? No — header affordances explain placeholder status; `/github` and `/deployment` are scaffold stubs; the workspace Git panel is a simulated surface on top of mock data.
+2. How would Git fit? Each completed build maps to a commit (version = v4, v5…); the Git panel already models the working tree → staged → commit → history pipeline, foreshadowing a real GitHub integration and CI/CD reacting to commits.
 3. What would "Deploy" do? Point the build artifact at a target (Vercel/Netlify API) and stream status; today it's a disabled-during-build button plus a notice.
