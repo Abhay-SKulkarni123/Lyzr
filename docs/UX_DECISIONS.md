@@ -156,6 +156,60 @@ Typography: **Inter** for UI, **JetBrains Mono** for code/terminal.
 
 ---
 
+## Phase 2 — Authentication & Dashboard Hub
+
+### Sign-in as the Product's Front Door
+
+**Problem**: The landing page described the product but the first real interaction was a deep link into `/workspace`.
+
+**Decision**: Route the primary CTAs through `/login?next=/workspace`. The landing page preserves its feature overview but the main path is Landing → Sign in → Dashboard → Project/New Project/Template → Workspace.
+
+**Why**: A dashboard hub is where a real product would manage projects; giving the prototype an account-like shell makes the journey coherent without building any backend.
+
+**Trade-off**: Mock accounts can imply more than the prototype delivers. The UI explicitly states accounts are mocked.
+
+### Mock Authentication
+
+**Decision**: Sign-up and sign-in validate input and show believable loading states, then store only a signed-in flag plus minimal name/email under `architect-demo-auth` in localStorage. Passwords are held in form state only and never persisted. A "Continue with GitHub" button runs a short mocked flow.
+
+**Why**: Demonstrates the full auth UX pattern — validation, loading, redirect, signed-out/signed-in states — with zero risk and zero credential handling.
+
+**Trade-off**: localStorage sessions share the browser; acceptable for a demo, replaced by cookies/middleware in production.
+
+### Gated Routes Without Redirect Flash
+
+**Problem**: Route guards that redirect during render cause a flash of content before the redirect fires (and hydration mismatches).
+
+**Decision**: `RequireAuth` (app layouts) and `RedirectIfAuthed` (auth pages) are client components that render a neutral "Loading…" until mounted, then read the session and act. Prerendered HTML is never the signed-in shell rendered for a logged-out user.
+
+**Trade-off**: A brief loading frame on first paint; the alternative (server middleware) is deferred until sessions are real.
+
+### Route Groups for Layout Boundaries
+
+**Decision**: `app/(auth)/` renders only the AuthShell; `app/(app)/` renders the DashboardShell with header and sidebar. The router keeps the two chrome treatments cleanly separated without affecting URL shape.
+
+**Why**: Shared layout structure, isolated concerns, and no conditional chrome branching inside a single layout.
+
+### Dashboard as the Hub
+
+**Decision**: `/dashboard` leads with a time-aware greeting, three stat cards, a persistent build-from-prompt composer, and recent projects; `/projects`, `/templates`, and `/settings` are reachable from the sidebar. A New Project modal (title + prompt + optional template) creates a seed and routes into `/workspace`.
+
+**Why**: The prompt stays the hero even inside the hub, but project management gets a real organizational surface.
+
+### Seeding the Workspace via Query Parameters
+
+**Decision**: `ProjectCard` open links, the New Project modal, and the dashboard composer build `/workspace?prompt=&project=` URLs; the workspace page resolves them to an initial prompt and project name.
+
+**Why**: Stateless, deep-linkable, and shareable — the workspace itself stays unchanged while acquiring context from everywhere in the app.
+
+### One Reusable Menu
+
+**Decision**: A single `Menu` primitive (click-outside + Escape dismissal, keyboard-openable trigger, role=menu) backs the header user menu, the sidebar account card, and project-card actions.
+
+**Why**: Consistent behavior and keyboard semantics across surfaces without duplicating popover logic.
+
+---
+
 ## Interaction Patterns
 
 ### Command Palette (Cmd+K)

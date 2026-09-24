@@ -15,7 +15,11 @@
 | Deployment | Header affordance with later-phase message | Workspace → Deploy button | 📋 Not connected |
 | File system | Sample project tree; file selection opens matching illustrative code view | Workspace → Files / Explorer | 🔧 Functional prototype |
 | Code editor | Read-only sample snippets; no Monaco or editing | Workspace → Code view | 📋 Static mock |
-| Authentication | Deferred; workspace is accessible without a session | Later phase | ⏳ Deferred |
+| Authentication | Mocked sign-in/sign-up with localStorage session and gated routes | /login, /signup, (app) layout | 🔧 Functional prototype (mocked accounts) |
+| Dashboard hub | Greeting, stats, build-from-prompt composer, recent projects | /dashboard | 🔧 Functional prototype |
+| Project library | Full project grid, card actions, New Project modal seeding the workspace | /projects | 🔧 Functional prototype (mock data) |
+| Template gallery | Four starter cards; each opens New Project pre-filled | /templates | 🔧 Functional prototype (mock data) |
+| Account settings | Profile, preferences, notifications, sign-out | /settings | 🔧 Functional prototype (mock saves) |
 | UI/UX (progressive complexity) | Preview default with Code, Terminal, Files, and responsive activity | Workspace | 🔧 Functional prototype |
 | Documentation system | README.md, docs/*.md, INTERVIEW_NOTES.md, PHASE_LOG.md | docs/ folder | ✅ Implemented |
 | IDE-style interface | Header, sidebar, content area structure | All pages | 🔧 Functional |
@@ -72,7 +76,10 @@
 - **Mock vs Real**: No deploy targets, pipeline, or deployment API.
 
 ### 10. Authentication
-- **Status**: Deferred; no authentication UI or session behavior is implemented in Phase 1.
+- **Status**: Phase 1 deferred; Phase 2 implements mocked sign-in/sign-up.
+- **Description**: `/login` and `/signup` render email/password forms (with a mock "Continue with GitHub" flow). The session is stored only as a lightweight flag (`architect-demo-auth` in localStorage) alongside minimal name/email — passwords are never persisted.
+- **Behavior**: Signing in routes to `/dashboard` by default, or to `?next=` if provided. `(app)` routes redirect to `/login` when signed out; `(auth)` routes redirect to `/dashboard` when signed in. Client-side guards use a mounted-state gate so prerendered HTML never flashes a redirect.
+- **Mock vs Real**: No server, cookies, OAuth, credential storage, or middleware. Password reset and account recovery are not implemented.
 
 ### 11. Component Library (shadcn/ui where useful)
 - **Description**: Consistent, accessible UI primitives.
@@ -90,13 +97,15 @@
 
 ## Notes on Mock Data
 
-All mocked features use a single `data/` folder with:
+All mocked features use typed fixtures in `data/` plus mock helpers in `lib/`:
 - `data/projects.ts`
 - `data/agents.ts`
 - `data/files.ts`
+- `data/templates.ts` (Phase 2)
 - `data/deployments.ts`
 - `data/environments.ts`
-- `data/sessions.ts`
+- `lib/auth.ts` (Phase 2 mock session helpers)
+- `lib/mock-api.ts` (API-like functions returning fixture types)
 
 Each file exports TypeScript types and sample data. API responses are derived from these fixtures.
 

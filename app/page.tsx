@@ -88,13 +88,13 @@ export default function HomePage() {
         </p>
         <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
           <Link
-            href="/workspace"
+            href="/login?next=/workspace"
             className="rounded-lg bg-coral px-8 py-4 font-medium text-white transition-all duration-200 hover:bg-coral/90 hover:shadow-lg"
           >
             Start Building (Prompt)
           </Link>
           <Link
-            href="/workspace"
+            href="/login"
             className="rounded-lg border border-white/20 bg-white/10 px-8 py-4 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20"
           >
             Explore Developer Mode

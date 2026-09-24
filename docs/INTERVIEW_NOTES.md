@@ -178,6 +178,90 @@ The market has a gap: "no-code" platforms limit control; traditional IDEs are ov
 
 ---
 
-## Phase 2 (Future) — Advanced Features
+## Phase 2 — Authentication & Dashboard Hub
 
-*To be filled as Phase 2 completes.*
+### What Was Implemented
+- Mocked `/login` and `/signup` with email/password forms, client-side validation, show/hide password, mock "Continue with GitHub", loading states, and post-success redirects (default `/dashboard`, or `?next=` when provided).
+- Route groups `app/(auth)/` and `app/(app)/`: auth pages live in a bare AuthShell; app pages share a DashboardShell with header and sidebar. Both are gated by client-side session guards (`RedirectIfAuthed`, `RequireAuth`) that use a mounted-state check to avoid redirect flashes.
+- A `lib/auth.ts` mock session: signed-in flag + minimal name/email stored as `architect-demo-auth` in localStorage; passwords are never persisted.
+- `/dashboard`: time-aware greeting, stat cards (projects/templates/deployed), a build-from-prompt composer, recent projects, and a templates call-out.
+- `/projects`: full project grid (ProjectCard with action menu, status badges, Open link) plus a New Project modal that routes into the workspace.
+- `/templates`: four template cards that pre-fill the New Project modal with a template prompt.
+- `/settings`: Profile / Preferences / Notifications sections driven by `?section=`, plus a Sign-out danger zone.
+- Workspace seeding: `/workspace?prompt=&project=` is parsed by the page and resolved (matching project IDs to names) before being passed into `WorkspaceShell` and `WorkspaceHeader`, whose header logo now links back to `/dashboard`.
+- A reusable `Menu` primitive (click-outside + Escape, `role="menu"`) shared by the header user menu, sidebar account card, and project-card actions.
+- Landing page CTAs now route through `/login?next=/workspace`.
+
+### Why the Flow Is Structured This Way
+- **Landing → Sign in → Dashboard**: This is the journey a real product would enforce, and it makes the prototype navigable end-to-end rather than a single deep link.
+- **Mock auth over real auth**: The requirement is to demonstrate product thinking. A deterministic localStorage flag delivers the full UX pattern (validation, loading, gating, redirects) with zero credential risk.
+- **Route groups as layout boundaries**: `(auth)` vs `(app)` keeps the two chrome treatments isolated at the router level instead of branching conditionally inside one layout.
+- **Stateless workspace seeding**: Query parameters let the workspace accept context from anywhere (project cards, new-project modal, composer) without adding a state library or global store.
+
+### Important Technical Decisions and Trade-offs
+- **No middleware**: Real apps use `middleware.ts` for auth redirects. Here the session lives in the browser, so guards are client components; the mounted gate prevents prerender flashes. Middleware is the documented production upgrade path.
+- **`window.location.search` for `?next=`**: Reading the target directly avoids `useSearchParams`/Suspense and keeps login/signup statically prerendered.
+- **Context only where shared**: An `AuthProvider` supplies the session to the header/sidebar/pages; workspace stays intentionally separate because it receives context via its query parameters.
+- **localStorage flag only**: Store `{ signedIn, user }`, nothing sensitive; passwords never touch storage or network.
+- **No new dependencies**: React Context, useEffect, and Tailwind cover everything; no Auth.js, state library, or UI kit.
+- **Route-group limits**: Route groups cannot panic around the same URL — `(auth)` and `(app)` resolve to distinct paths, which Next.js validates at build time.
+
+### Functional vs. Mocked
+- **Functional**: route gating, session persist/restore, form validation and loading states, dashboard navigation, project/template browsing, new-project modal, card open links, settings section switching, workspace prompt/project seeding, menu dismissal (click-outside/Escape).
+- **Mocked/static**: accounts and OAuth, project creation/persistence, template application, settings saves, sign-out telemetry.
+- **Not implemented**: real passwords, server-side sessions/cookies, middleware auth, password reset, account recovery, real project storage.
+
+### Likely Interviewer Questions
+
+1. **Why mock authentication instead of using a real provider?**
+   Real auth would demand secrets, a database, and environment setup that add risk without improving the product case the assignment asks for. The mock reproduces the entire UX pattern — validation, loading, state, redirects — with a localStorage flag, so the demo is safe and shareable.
+
+2. **How does the session survive a page refresh?**
+   `getMockSession()` reads `architect-demo-auth` from localStorage on every load. Because `AuthProvider` initializes its state from that helper and the guards re-check it after mount, refreshing `/dashboard` stays signed in and refreshing `/login` redirects away.
+
+3. **Where do passwords go?**
+   Nowhere. They live in form state, are validated in memory, and are discarded. The design decision was to never store or transmit a credential in a frontend-only prototype.
+
+4. **Why not guard routes with `middleware.ts`?**
+   Middleware runs on the server, where the localStorage session does not exist. The client-side guards are the correct tool for a browser-held flag; the mounted-state check exists so prerendered HTML never flashes a protected page, and middleware becomes the upgrade path when sessions move to cookies.
+
+5. **Why use `window.location.search` instead of `useSearchParams` for `?next=`?**
+   `useSearchParams` in a static page forces Suspense/dynamic rendering. Reading the query string directly in the submit handler is synchronous, is fully client-side, and keeps the build static.
+
+6. **What do the route groups add?**
+   `app/(auth)/` applies the bare AuthShell and the auth layout; `app/(app)/` applies the DashboardShell. Both are ordinary nested layouts scoped by the router — the same public vs. authenticated chrome a real app would have, without conditional branching inside one layout.
+
+7. **How does the workspace receive context from the dashboard?**
+   Project cards and the new-project modal build `/workspace?project=&prompt=`. The workspace page resolves `project` to a display name (matching mock project IDs where possible) and passes an `initialPrompt` prop; `WorkspaceShell` seeds its composer state from it.
+
+8. **Why pass props into the workspace rather than sharing the auth context there?**
+   The workspace displays a project the user opened; that context is a seed, not a live session dependency. Query parameters keep the workspace stateless and deep-linkable, and avoid coupling it to dashboard state.
+
+9. **How do the auth guards avoid a redirect flash?**
+   Both guards render a centered "Loading…" until `mounted` is true (first `useEffect`), then check the session. Server-rendered HTML never contains protected content for a logged-out visitor, and the effect runs after hydration so no navigation race occurs.
+
+10. **What happens if a signed-in user visits `/login`?**
+    `RedirectIfAuthed` checks the session after mount and replaces the route to `/dashboard`. This mirrors common "already signed in" behavior and keeps the auth pages unreachable while authenticated.
+
+11. **Why is the New Project modal separate from "Build something new"?**
+    The composer is a one-field, prompt-first interaction for starting immediately; the modal is an explicit create flow (name + prompt + optional template) for the project library. Both converge on the same destination: a seeded workspace.
+
+12. **How do templates work end-to-end?**
+    Each template card opens the New Project modal pre-filled with the template name and prompt. The user can adjust and submit, which routes to `/workspace` with those values as the initial prompt and project name. No files are actually generated.
+
+13. **What is inside `Menu` and why share it?**
+    A trigger button, a positioned list, outside-click and Escape handlers, and `aria` wiring. One implementation keeps keyboard semantics and dismissal behavior identical across the user menu, sidebar account card, and project-card action menus.
+
+14. **Which parts of the dashboard are purely visual vs. interactive?**
+    Interactive: navigation, section switching, modal create, menu open links, composer build handoff, logout. Visual: stat counts, project "updated" times, status badges, theme/notification controls — all read from static fixtures or localStorage; none persist to a server.
+
+15. **How would you turn this into real authentication?**
+    Replace `lib/auth.ts` with an auth provider (e.g., Auth.js v5 with credentials/email or GitHub OAuth), move guards to `middleware.ts` with HTTP-only cookies, back sessions with a database, and swap the `signInMock` calls for `fetch` to Next.js API routes or server actions. The component boundaries (`LoginForm`, `RequireAuth`, `AuthProvider`) already mirror that shape.
+
+16. **What did the build output tell you about the design?**
+    Every page except `/workspace` is statically prerendered. `(auth)` and `(app)` route groups resolve to distinct paths with no URL collisions, and the workspace stays dynamic only because it reads query parameters — a deliberate trade-off that keeps deep links working.
+
+17. **What is the one thing you would most like to improve next?**
+    Persisting newly created projects so the New Project modal actually stores a card in the library (eventually backed by a real API), then shipping the developer tooling — editable files, terminal, environment variables — and swapping the mock session for server-side auth.
+
+---

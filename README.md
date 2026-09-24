@@ -68,7 +68,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Current Status
 
-**Phase 1 — Architect Workspace**: The `/workspace` route now demonstrates the prompt → simulated build → sample preview experience, with project files and read-only Code/Terminal views. It is a frontend prototype; prompts do not generate or change the sample app.
+**Phase 2 — Authentication & Dashboard Hub**: `/login` and `/signup` provide a mocked sign-in flow; `/dashboard`, `/projects`, `/templates`, and `/settings` form a dashboard hub, and the Phase 1 `/workspace` now opens seeded with a project name and prompt from any card, template, or the new-project modal. The whole app remains a frontend prototype — accounts, projects, and settings are mocked.
 
 ## Mocked vs Functional Features
 
@@ -76,11 +76,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 |---------|--------|
 | Workspace navigation and responsive layout | ✅ Functional |
 | Prompt entry and timed build-state interaction | 🔧 Functional prototype |
+| Mock sign-in / sign-up (`/login`, `/signup`) | 🔧 Functional prototype (localStorage session) |
+| Dashboard hub, projects, templates, settings | 🔧 Functional prototype over mock data |
+| New Project modal and workspace seeding (`?prompt=`/`?project=`) | 🔧 Functional prototype |
 | Generated-app preview | 📋 Static sample; not generated from prompts |
 | File explorer and read-only code samples | 🔧 Functional prototype over mock data |
 | Terminal output | 📋 Static sample; commands do not execute |
 | Build activity | 📋 Simulated; no AI agents or real checks |
-| GitHub, deployment, authentication, backend | ⏳ Deferred / not connected |
+| GitHub, deployment, real accounts, backend | ⏳ Deferred / not connected |
 
 ## Future Improvements
 

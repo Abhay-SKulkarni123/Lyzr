@@ -132,9 +132,11 @@ Static TypeScript files exporting typed mock data and functions.
 
 ### Role in Architect 2.0
 - `data/projects.ts` — Project definitions
+- `data/templates.ts` — Template starters (Phase 2)
 - `data/agents.ts` — AI agent mock definitions
 - `data/files.ts` — Simulated file system
 - `data/deployments.ts` — Deployment history mock
+- `lib/auth.ts` — Mock session helpers (localStorage flag + user)
 - `lib/mock-api.ts` — API-like functions returning these types
 
 ### Key Concepts for Interviews
@@ -143,7 +145,50 @@ Static TypeScript files exporting typed mock data and functions.
 
 ---
 
-## 7. Component Architecture
+## 7. Mock Authentication (`lib/auth.ts` + route groups)
+
+### What it is
+A browser-only session: a signed-in boolean plus minimal name/email stored under `architect-demo-auth` in localStorage. Passwords are held in form state for validation and never persisted.
+
+### Helpers
+- `getMockSession()` — returns `{ signedIn, user }`, reading from localStorage
+- `signInMock(user)` — stores the session
+- `clearMockSession()` — removes the session (sign-out)
+- `nameFromEmail(email)` — derives a display name from the local part
+
+### Route Groups and Gating
+- `app/(auth)/` — public chrome (AuthShell); `RedirectIfAuthed` sends signed-in users to `/dashboard`.
+- `app/(app)/` — protected chrome (DashboardShell); `RequireAuth` redirects signed-out users to `/login`.
+- Both guards are client components rendering a neutral "Loading…" until `mounted` (first `useEffect`) so prerendered HTML never flashes protected content or redirects.
+- `AuthProvider` (React Context) exposes `session`/`setSession` to header, sidebar, and pages.
+
+### Key Concepts for Interviews
+- **localStorage vs cookies**: localStorage is client-only and fine for a demo; HTTP-only cookies + middleware are the production path.
+- **Mounted-state gate**: prevents hydration mismatch and redirect flashes for client-side guards.
+- **`?next=` via `window.location.search`**: avoids `useSearchParams`/Suspense, keeping auth pages statically prerendered.
+- **Route groups**: `(auth)` and `(app)` apply different layouts with no URL segment, validated at build time for collisions.
+
+---
+
+## 8. Workspace Context via Query Parameters
+
+### What it is
+The dashboard opens the workspace with context through the URL:
+`/workspace?project=<id-or-name>&prompt=<text>&new=1`.
+
+### How it works
+- `app/workspace/page.tsx` reads `searchParams` (server-side, synchronous in Next 14).
+- Project IDs are resolved to display names via `data/projects.ts`; unknown values are used as-is.
+- The resolved `projectName` and `initialPrompt` are passed as props to `WorkspaceShell` → `WorkspaceHeader`.
+- The workspace is intentionally NOT wrapped in `AuthProvider` — it is stateless and deep-linkable.
+
+### Key Concepts for Interviews
+- **Stateless seeding**: no global store required; any page can construct the deep link.
+- **Dynamic rendering trade-off**: `/workspace` is the only dynamic route because it reads query parameters; a later phase could make the seed client-side to restore static rendering.
+
+---
+
+## 9. Component Architecture
 
 ### Pattern: Compound Components
 We use compound components for complex UI:
@@ -166,7 +211,7 @@ We use compound components for complex UI:
 
 ---
 
-## 8. State Management Strategy
+## 10. State Management Strategy
 
 ### Local State (`useState`)
 Component-local: prompt input, sidebar open state, active tab.
@@ -179,7 +224,7 @@ Data flows up: prompt submission → workspace state update.
 
 ---
 
-## 9. Styling & Animation
+## 11. Styling & Animation
 
 ### CSS-in-JS (Tailwind)
 All styling is via Tailwind classes. No CSS modules, no styled-components.
@@ -191,7 +236,7 @@ Simple transitions using Tailwind:
 
 ---
 
-## 10. File System Structure Rationale
+## 12. File System Structure Rationale
 
 ### `/app/` — Next.js Pages
 - Route segments correspond to UI pages
@@ -218,7 +263,7 @@ Simple transitions using Tailwind:
 
 ---
 
-## 11. Build & Development
+## 13. Build & Development
 
 ### Development Commands (from package.json)
 ```json
@@ -239,7 +284,7 @@ Simple transitions using Tailwind:
 
 ---
 
-## 12. Potential Future Optimizations
+## 14. Potential Future Optimizations
 
 | Area | Optimization | Rationale |
 |------|-------------|-----------|

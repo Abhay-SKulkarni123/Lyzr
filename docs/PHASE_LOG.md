@@ -122,11 +122,53 @@
 
 ---
 
-## Phase 2 (Future)
+## Phase 2 — Authentication & Dashboard Hub (Completed)
 
-**Status**: Pending
+**Status**: Completed
 
-**Goal**: Advanced features (GitHub integration, environment variables, terminal, deployment, authentication).
+**Goal**: Give the prototype a coherent product journey — sign in, then manage projects from a dashboard hub — while preserving the Phase 1 workspace and opening it with project/prompt context when navigating from the hub.
+
+**Work Completed**:
+- Added mocked authentication at `/login` and `/signup` with email/password forms (client-side validation, show/hide password, mock "Continue with GitHub") and a mocked sign-up path. No account is created and no real password is stored; the session is a lightweight localStorage flag.
+- Added route groups `app/(auth)/` and `app/(app)/`, each with a layout that gates or redirects based on the mocked session.
+- Built a dashboard hub at `/dashboard` with a time-aware greeting, stat cards, a persistent build-from-prompt composer, recent projects, and a templates call-out.
+- Added `/projects` with the full project grid and a working New Project modal (name, prompt, optional template) that routes into the workspace.
+- Added `/templates` with four template starter cards; each opens the New Project modal pre-filled with the template's prompt.
+- Added `/settings` with Profile, Preferences, and Notifications sections, a Sign-out danger zone, and `?section=`-driven navigation.
+- Wired `/workspace` to accept `?prompt=` and `?project=` query parameters: project cards and the new-project modal open the workspace with the correct project name and initial prompt.
+- Updated the landing page CTAs to route through `/login?next=/workspace` so the primary call to action lands in the authenticated flow.
+- Added a reusable `Menu` primitive (click-outside + Escape dismissal) shared by the header user menu, sidebar account card, and project-card action menu.
+
+**Files Created/Changed**:
+- Created `lib/auth.ts`, `data/templates.ts`, and `components/shared/` (`StatusBadge.tsx`, `Menu.tsx`, `UserMenu.tsx`).
+- Created `components/auth/` (`AuthShell.tsx`, `RedirectIfAuthed.tsx`, `LoginForm.tsx`, `SignupForm.tsx`).
+- Created `components/dashboard/` (`auth-context.tsx`, `DashboardShell.tsx`, `DashboardFrame.tsx`, `DashboardHeader.tsx`, `DashboardSidebar.tsx`, `ProjectCard.tsx`, `ProjectGrid.tsx`, `ProjectThumb.tsx`, `BuildPrompt.tsx`, `NewProjectModal.tsx`).
+- Created routes: `app/(auth)/layout.tsx`, `app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`, `app/(app)/layout.tsx`, `app/(app)/dashboard/page.tsx`, `app/(app)/projects/page.tsx`, `app/(app)/templates/page.tsx`, `app/(app)/settings/page.tsx`.
+- Changed `app/workspace/page.tsx`, `components/workspace/WorkspaceShell.tsx`, `components/workspace/WorkspaceHeader.tsx`, and `app/page.tsx`.
+- Updated `README.md`, `docs/PHASE_LOG.md`, `docs/INTERVIEW_NOTES.md`, `docs/UX_DECISIONS.md`, `docs/FEATURE_MAP.md`, and `docs/TECHNICAL_NOTES.md`.
+
+**Important Decisions**:
+1. **Mock auth with a localStorage flag**: A signed-in flag plus minimal name/email keeps the demo deterministic, avoids any real credential handling, and is safe to share. Passwords typed into the forms are never stored.
+2. **Client-gated routes over middleware**: `RequireAuth` and `RedirectIfAuthed` use a mounted-state gate so prerendered HTML never flashes a redirect. Middleware is reserved for a future real auth layer.
+3. **Route groups separate auth from app chrome**: `(auth)` renders the bare AuthShell; `(app)` renders the DashboardShell (header + sidebar). Each layout stays internally cohesive.
+4. **`?next=` read via `window.location.search`**: The login form resolves its post-success target directly from the URL, avoiding `useSearchParams` + Suspense and keeping the build static.
+5. **Workspace context via query parameters**: `/workspace?prompt=&project=` is a stateless, shareable way to open a seeded workspace; project cards and the new-project modal both build these links.
+6. **Reusable `Menu` primitive**: One click-outside/Escape popover backs account menus and card actions, keeping behavior consistent and accessible.
+7. **No new dependencies**: The phase uses only React, Next.js, Tailwind, TypeScript, and lucide-react already present.
+
+**Functional vs. Mocked**:
+- Functional: route gating, localStorage session persist/restore, login/signup validation and loading states, dashboard navigation, project/template browsing, new-project modal, project-card open links, settings section switching, workspace prompt/project seeding.
+- Mocked/static: accounts, GitHub OAuth, password reset, project creation/persistence, template usage, profile/preferences/notification saves.
+- Not implemented: real passwords, server-side sessions, middleware, account recovery, real project storage, and any data that persists beyond `architect-demo-auth`.
+
+**Problems Encountered**:
+- The `Github` brand icon does not exist in the installed `lucide-react` version. Replaced with `GitBranch` for the "Continue with GitHub" buttons.
+- TypeScript flagged `error && !value` passing `null`/`""` into a `boolean` parameter in the signup form's shared field class helper. Coerced with `!!(...)`.
+
+**Validation**:
+- `npm run type-check` — passed.
+- `npm run lint` — passed with no warnings or errors.
+- `npm run build` — passed. All pages are statically prerendered except `/workspace`, which reads query parameters and remains dynamic.
 
 ---
 

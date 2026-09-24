@@ -13,17 +13,18 @@ import Link from "next/link";
 
 type WorkspaceHeaderProps = {
   isBuilding: boolean;
+  projectName: string;
   onNotice: (message: string) => void;
 };
 
-export function WorkspaceHeader({ isBuilding, onNotice }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ isBuilding, projectName, onNotice }: WorkspaceHeaderProps) {
   return (
     <header className="relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#10141d] px-4 md:px-6">
       <div className="flex min-w-0 items-center gap-3 md:gap-5">
         <Link
           className="flex shrink-0 items-center gap-2.5 text-sm font-semibold tracking-tight text-white"
-          href="/"
-          aria-label="Architect home"
+          href="/dashboard"
+          aria-label="Architect dashboard"
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-coral text-white shadow-[0_5px_18px_rgba(255,107,74,0.2)]">
             <Hexagon aria-hidden="true" className="h-4 w-4" strokeWidth={2.4} />
@@ -37,7 +38,7 @@ export function WorkspaceHeader({ isBuilding, onNotice }: WorkspaceHeaderProps) 
           type="button"
           aria-label="Select project"
         >
-          <span className="truncate font-medium">Northstar Analytics</span>
+          <span className="truncate font-medium">{projectName}</span>
           <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-slate-500" />
         </button>
         <span className="hidden items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[11px] text-slate-400 md:inline-flex">

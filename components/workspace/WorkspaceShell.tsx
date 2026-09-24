@@ -11,9 +11,17 @@ import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import type { BuildStatus, ProjectFile, WorkspaceView } from "./types";
 
-const initialPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
+const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
 
-export function WorkspaceShell() {
+type WorkspaceShellProps = {
+  initialPrompt?: string;
+  projectName?: string;
+};
+
+export function WorkspaceShell({
+  initialPrompt = defaultPrompt,
+  projectName = "Northstar Analytics",
+}: WorkspaceShellProps) {
   const [view, setView] = useState<WorkspaceView>("preview");
   const [buildStatus, setBuildStatus] = useState<BuildStatus>("complete");
   const [activeStep, setActiveStep] = useState(3);
@@ -70,7 +78,7 @@ export function WorkspaceShell() {
 
   return (
     <main className="flex h-dvh min-h-0 min-w-[320px] flex-col overflow-hidden bg-[#0b0f19] text-slate-200">
-      <WorkspaceHeader isBuilding={buildStatus === "building"} onNotice={showNotice} />
+      <WorkspaceHeader isBuilding={buildStatus === "building"} projectName={projectName} onNotice={showNotice} />
       <WorkspaceToolbar activeView={view} onChange={setView} />
 
       <div className="relative flex min-h-0 flex-1">
