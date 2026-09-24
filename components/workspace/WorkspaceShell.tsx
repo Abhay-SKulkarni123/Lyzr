@@ -1,6 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { DeploymentDialog } from "@/components/deployment/DeploymentDialog";
+import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
+import { useDeploymentState } from "@/components/deployment/useDeploymentState";
 import { GithubConnectionModal } from "@/components/github/GithubConnectionModal";
 import { PullRequestDialog } from "@/components/github/PullRequestDialog";
 import { useGithubState } from "@/components/github/useGithubState";
@@ -62,18 +66,26 @@ export function WorkspaceShell({
   const [commits, setCommitsState] = useState<GitCommit[]>(gitHistory);
   const [githubModalOpen, setGithubModalOpen] = useState(false);
   const [prDialog, setPrDialog] = useState<{ open: boolean; compare: string }>({ open: false, compare: "feature/analytics" });
+  const [deployDialogOpen, setDeployDialogOpen] = useState(false);
+
+  const router = useRouter();
 
   const latestPromptRef = useRef(latestPrompt);
   latestPromptRef.current = latestPrompt;
   const noticeTimer = useRef<number | null>(null);
   const autoRunHandled = useRef(false);
   const github = useGithubState({ onNotice: showNotice });
+  const deployment = useDeploymentState({ onNotice: showNotice });
 
   const recipe = buildIndex === 0 ? initialRecipe : iterationRecipe;
   const flat = useMemo(() => getRecipeActivities(recipe), [recipe]);
   const files = useMemo(() => getRecipeFiles(recipe), [recipe]);
 
   const busy = buildStatus === "understanding" || buildStatus === "planning" || buildStatus === "building" || buildStatus === "checking";
+
+  const headCommitSha = useMemo(() => {
+    return github.pushedHead ?? commits[0]?.hash ?? "a81d3f2";
+  }, [github.pushedHead, commits]);
 
   const modifiedFiles = useMemo(() => {
     const set = new Set<string>();
@@ -189,6 +201,16 @@ export function WorkspaceShell({
     if (!enabled && isDeveloperView(view)) setView("preview");
   }
 
+  function openLiveApp() {
+    setDeployDialogOpen(false);
+    router.push("/deployments/live");
+  }
+
+  function openDeployments() {
+    setDeployDialogOpen(false);
+    router.push("/deployments");
+  }
+
   function openFileByPath(path: string) {
     setTabs((prev) => (prev.includes(path) ? prev : [...prev, path]));
     setActivePath(path);
@@ -212,10 +234,12 @@ export function WorkspaceShell({
       <WorkspaceHeader
         branch={github.branch}
         changes={changes.length}
+        deploymentStatus={deployment.activeStatus}
         developerMode={developerMode}
         github={github}
         onDeveloperModeChange={toggleDeveloperMode}
         onNotice={showNotice}
+        onOpenDeployment={() => setDeployDialogOpen(true)}
         onOpenGithub={() => setGithubModalOpen(true)}
         projectName={projectName}
         status={buildStatus}
@@ -227,7 +251,7 @@ export function WorkspaceShell({
         <section className="flex min-w-0 flex-1 flex-col bg-[#0b0f19]" aria-label={`${view} workspace`}>
           {view === "preview" && (
             <div className="relative flex min-h-0 flex-1 items-stretch justify-center overflow-hidden p-2 sm:p-3 lg:p-4">
-              <PreviewStatus status={buildStatus} />
+              <PreviewStatus live={deployment.live} status={buildStatus} />
               <DashboardPreview />
             </div>
           )}
@@ -247,7 +271,7 @@ export function WorkspaceShell({
               <TerminalPanel />
             </div>
           )}
-          {(view === "git" || view === "environment" || view === "settings" || view === "files") && (
+          {(view === "git" || view === "deployments" || view === "environment" || view === "settings" || view === "files") && (
             <div className="workspace-scrollbar min-h-0 flex-1 overflow-auto p-3 sm:p-5 lg:p-7">
               {view === "git" && (
                 <GitPanel
@@ -259,6 +283,15 @@ export function WorkspaceShell({
                   onNotice={showNotice}
                   onOpenGithub={() => setGithubModalOpen(true)}
                   onOpenPullRequest={(compare) => setPrDialog({ open: true, compare })}
+                />
+              )}
+              {view === "deployments" && (
+                <DeploymentPanel
+                  branch={github.branch}
+                  commitSha={headCommitSha}
+                  deployment={deployment}
+                  onOpenLiveApp={openLiveApp}
+                  projectName={projectName}
                 />
               )}
               {view === "environment" && <EnvironmentPanel onNotice={showNotice} />}
@@ -287,6 +320,21 @@ export function WorkspaceShell({
           </div>
         )}
         {githubModalOpen && <GithubConnectionModal github={github} onClose={() => setGithubModalOpen(false)} />}
+        {deployDialogOpen && (
+          <DeploymentDialog
+            branches={github.branches}
+            commitSha={headCommitSha}
+            deployment={deployment}
+            onClose={() => setDeployDialogOpen(false)}
+            onOpenLiveApp={openLiveApp}
+            onOpenPreview={() => {
+              setDeployDialogOpen(false);
+              setView("preview");
+            }}
+            onViewDeployments={openDeployments}
+            projectName={projectName}
+          />
+        )}
         {prDialog.open && (
           <PullRequestDialog
             changedFiles={changes.length}

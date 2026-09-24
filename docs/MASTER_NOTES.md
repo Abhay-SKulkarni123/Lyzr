@@ -47,10 +47,10 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 ## Tech Stack & Repo Structure
 
 - **Framework**: Next.js 14.2.5 (App Router), React 18, strict TypeScript, Tailwind CSS, lucide-react. **No runtime backend, no added dependencies.**
-- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, GitHub integration page `/github`, plus placeholder `/agents`, `/deployment`.
-- **components/**: `workspace/` (the build experience and all build-centric UI), `github/` (GitHub connection, repository/branch pickers, sync, checks, pull request form/details, shared state hook), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/`, `deployment/` scaffold folders.
-- **lib/**: `auth.ts` (mock localStorage session helpers), `github-storage.ts` (GitHub snapshot persistence — key `architect-demo-github`).
-- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings), `github.ts` (GitHub identity, mock repositories, branches, checks, pull requests, notes, helpers).
+- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, GitHub integration page `/github`, Deployments overview `/deployments`, live application view `/deployments/live`, plus placeholder `/agents`.
+- **components/**: `workspace/` (the build experience and all build-centric UI), `github/` (GitHub connection, repository/branch pickers, sync, checks, pull request form/details, shared state hook), `deployment/` (deployment button/dialog/status/progress/logs/config/history/details/panel + shared state hook), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/` scaffold folders.
+- **lib/**: `auth.ts` (mock localStorage session helpers), `github-storage.ts` (GitHub snapshot persistence — key `architect-demo-github`), `deployment-storage.ts` (deployment snapshot persistence — key `architect-demo-deployment`).
+- **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings), `github.ts` (GitHub identity, mock repositories, branches, checks, pull requests, notes, helpers), `deployment.ts` (deployment types, frameworks, progress steps, seed records, deterministic logs, URL builder, notes).
 - **types/**: reserved; workspace types live in `components/workspace/types.ts`.
 - **docs/**: `MASTER_NOTES.md` and `INTERVIEW_PREP.md` only.
 - **Validation**: `npm run type-check`, `npm run lint`, `npm run build`.
@@ -79,7 +79,11 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 | Repository & branch management | `GithubRepositoryPicker`, `GithubBranchPicker` (incl. create-repo / create-branch mocks) | Functional simulation over mock data |
 | Sync / push / pull request flow | `GithubSync`, GitPanel push, `PullRequestDialog`, `PullRequestForm`/`PullRequestDetails`, `GithubChecks` | Simulated; remote never touched |
 | Preview states (idle/busy/ready) | `PreviewStatus` | Functional overlay |
-| Deployment, real agents | Placeholder buttons/pages | Deferred / not connected |
+| Simulated deployment flow | `components/deployment/*`, shared `useDeploymentState` hook on the workspace header button and Deployments developer view | Functional simulation, persisted in browser |
+| Deployments overview | `/deployments` page (production card, config, history, retry) | Shared state with workspace |
+| Live application view | `/deployments/live` (LIVE · Simulated bar + preview) | Simulated render |
+| Deployment failure demo + retry | Deterministic "Simulate deployment failure" toggle | Functional simulation |
+| Real agents | Placeholder button/page | Deferred / not connected |
 | Real AI, code gen, sandbox, terminal exec, backend | — | Deferred / not connected |
 
 ---
@@ -117,6 +121,17 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - **Deterministic failure demo**: a "Simulate demo failures" toggle in the connection modal makes the next connect/sync/push/PR creation fail exactly once with a labeled error + retry affordance — a demo/Q&A aid, never random.
 - **Error handling & a11y**: dialogs trap Escape, focus the close button, use `role="dialog"`/`aria-modal`/labelled ids, and surface status both visually (dots/labels) and for screen readers (`aria-live` sync status).
 
+### Deployment experience (Phase 6)
+- **Simulation, not infrastructure**: no deployment servers, Docker, Vercel/AWS cloud, CI/CD, build execution, shell commands, real secrets, or real hosting. Every deployment surface is labeled ("Deployment is simulated in prototype mode.", "Simulated live URL — this address does not host a real application."). The deploy lifecycle is a deterministic, timer-driven local simulation (preparing → building → deploying → ready).
+- **Typed model in `data/deployment.ts`**: `DeploymentEnvironment` (production | preview), `DeploymentStatus` (idle | preparing | building | deploying | ready | failed | cancelled), `DeploymentRecord` (id, projectName, environment, branch, status, commitSha, createdAt, endedAt, duration, url, buildCommand, outputDirectory, framework, autoDeployFromGithub, human-readable `logs`), `DeploymentConfig`, `DeploymentSnapshot`. Realistic defaults: Next.js framework, `npm run build` command, `.next` output, production branch `main`; seed records (dep-1 production `a81d3f2` ready; dep-2 preview `b82c91a` ready); simulated URLs (`https://saas-analytics.architect-demo.app` as Simulated live URL).
+- **Progress + logs use the build's visual language**: a 4-step timeline (Preparing/Building/Deploying/Ready) with human-readable detail lines and human-readable logs (✓ Preparing application, Installing dependencies, Running production build, Uploading build, Publishing deployment) — NOT fake technical logs ("POST /api/deploy", docker hashes). Failure keeps the friendly framing: "The build could not be completed."
+- **Shared, persisted state via `useDeploymentState`** (`components/deployment/useDeploymentState.ts` + `lib/deployment-storage.ts`, localStorage key `architect-demo-deployment`): the workspace header button, the Deployments developer view, the deploy dialog, `/deployments`, and `/deployments/live` all read the **same** hook, so a deployment started in the workspace appears on `/deployments` and live. `withNormalizedActive` marks any in-progress record "cancelled" on load so browser reloads never strand a running deploy. Deterministic ids (`dep-N`, seeded counter), durations only randomized for realism.
+- **Entry points**: a real `DeploymentButton` in the workspace header (Deploy / Deploying… / Live / Redeploy + status dot, replacing the old disabled placeholder), a developer-toolbar "Deployments" view (`DeploymentPanel`: current status, advanced config, Run/logs, grouped history, simulate-failure toggle, reset), and the `/deployments` page (current production deployment card with Open-live/Redeploy, configuration summary, logs while running, grouped history with per-record Details/Logs dialog and Redeploy). Deploy is a **natural product action**, not a DevOps dashboard: the dialogs default to the simple view (Project, Environment, Branch, Commit, "Automatic configuration") with "Advanced settings" (framework, build command, output directory, auto-deploy, masked environment variables) collapsed behind a toggle that opens with `DeploymentConfig`.
+- **GitHub → deployment relationship**: deployment records store `branch` + `commitSha` from the existing GitHub hook (single branch source of truth; commit falls back to `github.pushedHead` → latest local commit → seed `a81d3f2`). No branching of state.
+- **Preview → deployment relationship**: `PreviewStatus` gains an optional `live` flag — next to the "Preview ready" pill it renders a "Production · Live" chip once a production deployment exists.
+- **Deterministic failure demo**: a "Simulate deployment failure" toggle (dialog + panel) makes the next deploy fail once after the Build step with a labeled error + Retry; Retry (`forceSuccess`) succeeds regardless of the toggle.
+- **Progressive disclosure**: non-technical flow shows only Deploy/Deploying…/Ready/Failed in the header; advanced configuration, logs, history, and the failure toggle live in developer surfaces.
+
 ### Mock auth (`lib/auth.ts`)
 - Storage key `architect-demo-auth`; value `{ signedIn, user:{name,email} }`. Passwords never stored.
 - Client guards (`RedirectIfAuthed`, `RequireAuth`) with a mounted-state gate to avoid prerender redirect flashes.
@@ -145,6 +160,7 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - **GitHub is an integration, not a clone**: the repo picker/branch picker/PR tooling live inside the Architect chrome and reuse existing surfaces (GitPanel, CommitHistory, working-tree data) rather than building a parallel GitHub UI; the header keeps a one-glance status chip instead of a separate nav item.
 - **Connection as a first-class ceremony**: connecting shows a simulated "permissions" screen and OAuth explanation, and disconnecting uses a labeled confirm ("Disconnect GitHub?" · "Your local Architect project will remain unchanged.") — the tap-through UX of a real connection flow with zero real consent.
 - **Cause → effect is visible**: working tree → commit → push ("Pushed to GitHub · saas-analytics · main · a81d3f2 … (simulated)") → PR (Base/Compare) → checks → merge is staged as one coherent flow, so an interviewer can narrate the real product loop from a mock.
+- **Deployment closes the product loop with restraint**: build → preview → GitHub → deploy → status → live app, but the Deploy action stays a single header/primary CTA and a simple dialog (Project/Environment/Branch/Commit) — "Advanced settings" and logs/history are behind disclosure rather than being a standalone DevOps console. No Vercel/Netlify clone; "Open Live App" ships to a clearly-labeled simulated live page.
 - **Visual system**: dark workspace (`#0b0f19`, surfaces `#10141d`, `#0c1018`), coral primary, mint success, amber busy, rose errors, restrained borders, Lucide icons, compact developer typography.
 
 ---
@@ -154,13 +170,15 @@ Small, focused components in `components/workspace/` that take props (no shared 
 ### Functional
 - Routing, auth gating, session persist/restore, dashboard navigation, new-project modal, workspace seeding, prompt submission + duplicate blocking, build lifecycle timeline, agent status derivation, plan/file/history rendering, preview status pills, success & error states, retry, iteration, view switching, file selection/modified markers, responsive collapse, settings section switching, menu dismissal, developer mode toggle + view reset, open-tab lifecycle (add/activate/close, empty-state), file→code links from explorer/Files/file activity, terminal input routing (whitelist only), git stage/commit/push simulation and commit history, env var mask/edit/add/remove, modified-file union (build ∪ git).
 - GitHub connection lifecycle (connect with simulated delay, permissions screen, disconnect confirm card, labeled "Connected as @abhay-demo"), repository search/filter/select + "Create repository" mock, branch picker + "Create branch" mock, 4-phase sync (Syncing → Checking → Comparing → done), push tracking (pushed-head vs HEAD → "up to date / N ready to push"), PR creation (Base/Compare/Title/Description/changed-files/checks) flowing into PR details with simulated merge, simulated "Architect checks" list, deterministic demo-failure toggle + retry, shared GitHub state persisted under `architect-demo-github` across workspace and `/github`, error notices for connect/sync/push/PR.
+- Deployment lifecycle (deploy with progress timeline + cancel, successful publish with "Deployment ready" + copy link, deterministic failure + retry, redeploy), advanced configuration (framework/build command/output directory/auto-deploy switches + masked env variables), grouped deployment history with per-record Details/Logs + Redeploy dialog, deployment → live app render with "LIVE · Simulated" bar, GitHub branch/commit propagated into records, shared deployment state persisted under `architect-demo-deployment` across workspace, `/deployments`, and `/deployments/live`, reset-demo-data clearing localStorage.
 
 ### Mocked / simulated
 - Accounts & OAuth, projects/templates data, agents ("Architect", "UI Builder", "Data Agent", "QA Agent"), the entire build lifecycle (timer-driven), file changes (markers only — no files written), plan/recent-instruction/history persistence, preview updates (preview stays the static sample), success metrics, terminal/log output, error trigger, npm/git command execution (whitelist → canned output), commits & pushes (random/static hash, local state only), git branches, environment variable values (mock strings, masked by default), repository file tree & code samples.
 - GitHub OAuth handshake, remote repositories, actual branch switching/creation, real pushes, real pull requests and merges, GitHub Actions checks, webhook/status updates, rate limits, GitHub identity (@abhay-demo is fictional), all repository/PR data.
+- The entire deployment pipeline (build/deploy commands, dependency install, artifact upload, publishing, durations, logs), production/preview environments, live URLs (`*.architect-demo.app`), cloud/CI/CD infra, auto-deploy event listening, environment variable values (masked placeholders, never real), deployment failure behavior (deterministic toggle).
 
 ### Not implemented (later phases)
-- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, real git (commits/pushes/branches), real environment infrastructure, real GitHub (API, OAuth, remote repos, PRs, Actions, webhooks), deployment, backend/database, middleware auth.
+- Real AI providers, real agents/orchestration, code generation, sandboxed execution, real terminal, real file system writes, real git (commits/pushes/branches), real environment infrastructure, real GitHub (API, OAuth, remote repos, PRs, Actions, webhooks), real deployment (cloud build/deploy, CI/CD, auto-deploy webhooks, env secrets), backend/database, middleware auth.
 
 ---
 
@@ -184,6 +202,9 @@ Expanded the workspace Prompt → Plan → Agents → Files → Build → Previe
 ### Phase 5 — GitHub Integration (done)
 Added a convincing, clearly-labeled GitHub integration on top of the simulated local git: project → git → connect GitHub (simulated permissions + OAuth explanation, identity @abhay-demo) → choose repository (5 mock repos, search/filter/select, Create-repository mock) → choose branch (select + create mock) → review working tree (existing local changes, no duplicated state) → push ("Pushed to GitHub · repo · branch · hash message (simulated)") → create pull request (Base/Compare/Title/Description, changed files, passing checks) → review PR with simulated Architect checks (TypeScript/ESLint/Production build/Preview validation) → simulated merge. Added a compact header GitHub status chip, GitHub-aware GitPanel push/PR, and a standalone `/github` page sharing one persisted hook (`useGithubState` + `lib/github-storage.ts`, key `architect-demo-github`) with the workspace. No OAuth/API/tokens/repo operations: GitHub state is lifted as a remote-facing layer over Phase 4's local git (single branch source of truth; local git `changes`/`commits` lifted into `WorkspaceShell` as controlled props). Deterministic "demo failure" toggle + labeled error/retry; disconnect confirm leaves local git untouched.
 
+### Phase 6 — Deployment Experience (done)
+Completed the product loop Build → Preview → GitHub → Deploy → Status → Live app with a clearly-labeled, fully simulated deployment experience that behaves like a natural Architect action rather than a DevOps dashboard. Added `data/deployment.ts` (typed `DeploymentRecord`/`DeploymentConfig`/snapshot model, frameworks, 4-step progress, human-readable logs, deterministic seed records, simulated URLs), `lib/deployment-storage.ts` (key `architect-demo-deployment`, cancels in-progress runs on load), and `components/deployment/*` sharing one `useDeploymentState` hook: workspace header `DeploymentButton` (Deploy/Deploying…/Live/Redeploy — replaced the old disabled placeholder), a simple-first deploy dialog (Project/Environment/Branch/Commit + collapsible Advanced settings incl. masked env vars), progress timeline + logs + cancel while running, success panel ("Deployment ready … is live", simulated URL, Open Preview / Open Live App / Copy link / View all), labeled failure + retry (deterministic simulate-failure toggle; retry force-succeeds), a developer-toolbar "Deployments" view (`DeploymentPanel`), and a standalone `/deployments` overview plus `/deployments/live` (LIVE · Simulated bar over the shared preview). Production records capture the existing GitHub branch/commit; `PreviewStatus` shows a "Production · Live" chip once deployed. Validation: type-check + lint + build clean, production server smoke test on all routes incl. `/deployments` and `/deployments/live`. No real infrastructure, credentials, or builds are ever invoked.
+
 ---
 
 ## Important Trade-offs
@@ -195,7 +216,8 @@ Added a convincing, clearly-labeled GitHub integration on top of the simulated l
 - **Read-only code/files**: communicates the workflow without fake editing or unsafe writes.
 - **Simulated terminal/git/env**: delivers the code-first surface — copy, tabs, masked values, staging, commits — with zero execution risk; every surface is labeled and commands are routed through a whitelist that returns canned output.
 - **Simulated GitHub over real GitHub**: reproduces the entire connect → repo → branch → push → PR → checks → merge ceremony as a first-class integration with zero credentials, network calls, or remote side effects; the typed snapshot + localStorage persistence swap cleanly behind a real API adapter.
-- **Shared GitHub state vs isolated mock islands**: the workspace and `/github` read one hook + one localStorage snapshot so presenters can navigate between them without re-connecting; local git data stays separate so the local/remote boundary mirrors production.
+- **Simulated deployment over real deployment**: the pipeline runs as a deterministic, timer-driven local simulation so Deploy/Deploying…/Ready/Failed behaves like production UX with zero infra, credentials, or risk. A `DeploymentConfig` + snapshot adapter is the seam for swapping in a real provider later.
+- **Shared GitHub/deployment state vs isolated mock islands**: the workspace and `/github` read one hook + one localStorage snapshot so presenters can navigate between them without re-connecting; deployment records reuse the same GitHub branch/commit so build → push → deploy reads as one narrative; local git data stays separate so the local/remote boundary mirrors production.
 - **Preview is static**: components can narrate changes but not render them; acknowledged in the UI.
 - **Route-group layout split** and **query-param seeding** keep each surface decoupled.
 
@@ -203,13 +225,15 @@ Added a convincing, clearly-labeled GitHub integration on top of the simulated l
 
 ## Current Limitations
 
-- No persistence beyond `architect-demo-auth` and `architect-demo-github` (projects, prompts, history, commits, env edits vanish on reload).
+- No persistence beyond `architect-demo-auth`, `architect-demo-github`, and `architect-demo-deployment` (projects, prompts, history, commits, env edits vanish on reload).
 - GitHub state is per-browser: navigation between workspace and `/github` shares state through localStorage, but there is no server, no cross-device sync, and no real GitHub account/remote.
+- Deployment state is per-browser and fully simulated: no real builds, artifacts, environments, URLs, webhooks, or CI/CD; live URLs (`*.architect-demo.app`) do not resolve to a real service; "Open Live App" renders the same static preview.
 - Build does not change the preview, files, or code — all simulated.
 - Terminal, git, and environment panels are mock-only: no real execution, no real commits/pushes, no real secrets.
 - GitHub integration is fully simulated: no OAuth, no API calls, no real repositories/pushes/branches/PRs/checks/merges, no rate limits or webhooks.
+- Deployment is fully simulated: no cloud provider, no real env variables, no auto-deploy event listening, cookie/localStorage only.
 - Agents are presentational; no orchestration, no LLM, no tool calls.
-- `/workspace` and `/github` are the only dynamic routes (query params; client-state).
+- `/workspace`, `/github`, `/deployments`, and `/deployments/live` are the only dynamic routes (query params; client-state).
 - Accessibility/testing/shadcn polish deferred to a later phase.
 
 ---
@@ -223,7 +247,7 @@ Added a convincing, clearly-labeled GitHub integration on top of the simulated l
 - **Storage**: PostgreSQL (projects, builds), S3/object store (artifacts), git via GitHub API.
 - **GitHub (Phase 5 → production)**: add real OAuth (GitHub App) with a backend token store, replace `data/github.ts`/`lib/github-storage.ts` behind an API adapter (`/app/api/github/*`), poll or subscribe to webhooks for repo/branch/PR/check status, run real `git` in the sandbox, and surface real Actions checks in `GithubChecks`.
 - **Auth**: Auth.js (credentials/email or GitHub OAuth) + HTTP-only cookies + middleware.
-- **Deployment**: Vercel/Netlify APIs or a custom CI runner.
+- **Deployment (Phase 6 → production)**: swap the deterministic timer behind a real adapter — trigger via Vercel/Netlify build hooks or GitHub Actions on push, stream build/deploy logs over SSE/WebSocket, provision preview deployments per pull request/branch, support rollbacks, store secrets server-side with the provider, and resolve the simulated URLs to real hosts. `DeploymentConfig` (`framework`, `buildCommand`, `outputDirectory`) already mirrors a provider's build settings.
 - **Monitoring**: Sentry + structured logs.
 
 The mock boundaries (`data/`, `lib/`, typed state models) are designed to be swapped behind adapters, not rewritten.

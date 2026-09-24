@@ -4,12 +4,13 @@ export type WorkspaceView =
   | "terminal"
   | "files"
   | "git"
+  | "deployments"
   | "environment"
   | "settings";
 
 export const PRIMARY_VIEWS: WorkspaceView[] = ["preview", "code", "terminal", "files"];
 
-export const DEVELOPER_VIEWS: WorkspaceView[] = ["git", "environment", "settings"];
+export const DEVELOPER_VIEWS: WorkspaceView[] = ["git", "deployments", "environment", "settings"];
 
 export function isDeveloperView(view: WorkspaceView): boolean {
   return DEVELOPER_VIEWS.includes(view);

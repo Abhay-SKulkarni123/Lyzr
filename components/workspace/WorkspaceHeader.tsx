@@ -6,9 +6,10 @@ import {
   GitBranch,
   Hexagon,
   Settings2,
-  Upload,
 } from "lucide-react";
 import Link from "next/link";
+import type { DeploymentStatus } from "@/data/deployment";
+import { DeploymentButton } from "@/components/deployment/DeploymentButton";
 import type { GithubState } from "@/components/github/useGithubState";
 import { GithubHeaderChip } from "@/components/github/GithubHeaderChip";
 import { DeveloperModeToggle } from "./DeveloperModeToggle";
@@ -24,9 +25,11 @@ type WorkspaceHeaderProps = {
   onOpenGithub: () => void;
   onDeveloperModeChange: (enabled: boolean) => void;
   onNotice: (message: string) => void;
+  deploymentStatus: DeploymentStatus;
+  onOpenDeployment: () => void;
 };
 
-export function WorkspaceHeader({ status, projectName, developerMode, changes, branch, github, onOpenGithub, onDeveloperModeChange, onNotice }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ status, projectName, developerMode, changes, branch, github, onOpenGithub, onDeveloperModeChange, onNotice, deploymentStatus, onOpenDeployment }: WorkspaceHeaderProps) {
   const busy = isBuildPhase(status);
   const stateText = busy
     ? "Building…"
@@ -76,15 +79,7 @@ export function WorkspaceHeader({ status, projectName, developerMode, changes, b
           {stateText}
         </div>
         <GithubHeaderChip changes={changes} github={github} onOpen={onOpenGithub} />
-        <button
-          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-coral px-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#ff795c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3"
-          disabled={busy}
-          onClick={() => onNotice("Deployment is planned for a later phase.")}
-          type="button"
-        >
-          <Upload aria-hidden="true" className="h-3.5 w-3.5" />
-          <span>Deploy</span>
-        </button>
+        <DeploymentButton disabled={busy} onDeploy={onOpenDeployment} status={deploymentStatus} />
         <button
           aria-label="Workspace settings"
           className="hidden h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/[0.05] hover:text-white sm:inline-flex"

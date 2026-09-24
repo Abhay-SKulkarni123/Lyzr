@@ -42,9 +42,9 @@ const features = [
   {
     name: "Deployment & CI/CD",
     description:
-      "Deploy applications to various environments with built-in CI/CD pipelines",
+      "Deploy applications to production and preview environments with simulated build, status, and live app views",
     icon: Settings,
-    path: "/deployment",
+    path: "/deployments",
   },
 ];
 

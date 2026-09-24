@@ -11,12 +11,13 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Data-driven simulation**: `data/builds.ts` + `data/developer.ts` hold agents, recipes, activities, file tree/code samples, terminal/git/env mocks; components render data, they do not hardcode logic.
 - **Whitelist-routed simulated terminal**: `normalizeCommand` → `findTerminalCommand` maps only safe demo commands (`npm run dev/build/lint`, `git status`) to canned output; everything else returns a "simulated" notice — no `child_process`, never user input executed.
 - **Open-tabs editor model**: `WorkspaceShell` owns `tabs: string[]` + `activePath`; explorer/Files/file-activity all funnel into `openFileByPath` (dedupe → activate → switch to Code); close re-activates the last tab, all-closed shows an empty state.
-- **Extended workspace view union**: `WorkspaceView` = primary (preview/code/terminal/files) + developer-only (git/environment/settings); `isDeveloperView` guards the mode-off reset.
+- **Extended workspace view union**: `WorkspaceView` = primary (preview/code/terminal/files) + developer-only (git/deployments/environment/settings); `isDeveloperView` guards the mode-off reset.
 - **Modified-file union**: build-touched files ∪ git `M`/`A` files drive the emerald "updated" dots consistently across explorer, tabs, and Files view.
 - **Client-side guards**: `RequireAuth` / `RedirectIfAuthed` with a mounted gate to avoid hydration mismatch and redirect flashes.
 - **Query-parameter seeding**: `/workspace?prompt=&project=` keeps a route stateless and deep-linkable; server resolves project id → name.
 - **Mock session**: localStorage flag (`architect-demo-auth`), passwords never stored; `lib/auth.ts` isolates the boundary for a future real provider.
 - **Shared persisted GitHub state**: `useGithubState` owns one typed `GithubSnapshot` (connected, repoId, branch, lastSyncedAt, pushedHead, created PRs/branches/repositories, demoFailures) persisted under `architect-demo-github`; the workspace header, GitPanel, connection card/modal, and `/github` page all read the same hook — one state pool, no mock islands.
+- **Shared persisted deployment state**: `useDeploymentState` owns one typed `DeploymentSnapshot` (simulateFailure, config, records, activeRecordId) persisted under `architect-demo-deployment`; the workspace header button, Deployments developer view, deploy dialog, `/deployments`, and `/deployments/live` all read the same hook. Deterministic record ids (`dep-N`), timer-driven progress (preparing → building → deploying → ready), in-progress runs cancelled on load, and a `DeploymentConfig` (`framework`, `buildCommand`, `outputDirectory`, `autoDeployFromGithub`) that mirrors a real provider's build settings.
 - **Local/remote boundary**: local git lives in `data/developer.ts` (working tree, commits) and `WorkspaceShell`; GitHub adds only the remote-facing layer. Single source of branch truth is `github.branch` (the old separate `gitBranch` was removed), and local `changes`/`commits` were lifted into the shell and passed to `GitPanel` as controlled props.
 - **Reusable primitives**: `Menu` (click-outside + Escape + `role`), `StatusBadge`; derivation of statuses (agent/file/plan) from shared state rather than scattered booleans.
 
@@ -28,7 +29,8 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Context retention**: preview never disappears behind a loader during builds.
 - **Honesty in a prototype**: every simulated surface is labeled ("Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.") so nothing is claimed as real.
 - **GitHub as an integration, not a clone**: repo/branch pickers and PR tooling live inside Architect chrome and reuse existing surfaces (GitPanel, CommitHistory, working-tree data) instead of building a parallel GitHub UI; a one-glance header chip keeps presence light.
-- **Cause → effect is visible**: working tree → commit → push ("Pushed to GitHub · saas-analytics · main · a81d3f2 … (simulated)") → PR (Base/Compare) → checks → merge is one coherent, narratable loop.
+- **Cause → effect is visible**: working tree → commit → push ("Pushed to GitHub · saas-analytics · main · a81d3f2 … (simulated)") → PR (Base/Compare) → checks → merge is one coherent, narratable loop — and deployment now closes it: push → deploy → "Deployment ready" → live app, with GitHub branch/commit carried straight into each deployment record.
+- **Deployment as a product action, not a DevOps console**: the Deploy CTA lives in the workspace header with a simple-first dialog (Project/Environment/Branch/Commit); advanced settings, logs, and history sit behind progressive disclosure in developer surfaces, so a non-technical user only ever sees Deploy → Deploying… → Live. The simulated live URL is always labeled so the prototype never claims a real service.
 
 ## Why These Decisions Were Made
 
@@ -38,7 +40,7 @@ Interview talking points specific to Architect 2.0. Reflects everything importan
 - **Simulated agents**: deliver the full product UX and story without credential, cost, or safety risk during a bounded prototype.
 - **Client-only state**: the build lifecycle is one-screen interaction; a store/backend is only worth adding once state is shared or persisted. Tabs and git/env local state follow the same rule.
 - **No new dependencies**: everything is achievable with React + Next + Tailwind + lucide-react.
-- **No dangerous browser capabilities**: dev tools are simulated instead of wired to `child_process`, real git, `.env` files, or the filesystem — the prototype never hands the browser arbitrary execution, secret access, or repo mutation. The GitHub flow extends this rule: no OAuth flow, no token, no API calls from the browser.
+- **No dangerous browser capabilities**: dev tools are simulated instead of wired to `child_process`, real git, `.env` files, or the filesystem — the prototype never hands the browser arbitrary execution, secret access, or repo mutation. The GitHub flow extends this rule: no OAuth flow, no token, no API calls from the browser. So does deployment: no build execution, no provider credentials, no real hosting — the Deploy pipeline runs as a labeled, deterministic local simulation.
 
 ---
 
@@ -109,7 +111,7 @@ No. "Commit" generates a random 7-hex hash, prepends it to a local commit-histor
 
 ## Production-Readiness / Architecture Questions
 
-1. **What would production architecture look like?** Next.js API + BullMQ workers + Docker sandbox + Postgres/Redis + object storage + SSE/WebSocket; GitHub for version control; Auth.js for sessions; Vercel/Netlify for deploys; Sentry for monitoring.
+1. **What would production architecture look like?** Next.js API + BullMQ workers + Docker sandbox + Postgres/Redis + object storage + SSE/WebSocket; GitHub for version control; Auth.js for sessions; Vercel/Netlify build hooks or GitHub Actions for deploys; Sentry for monitoring.
 2. **Why no middleware in the prototype?** The mock session lives in localStorage; middleware runs server-side and can't read it. The mounted gate prevents redirect flashes. With cookies, `middleware.ts` would handle gating server-side.
 3. **How do you keep the prototype swapping to real services?** Adapters: `lib/auth.ts`, `data/`, typed models, and prop-driven components define boundaries; a real integration replaces the implementation behind the same shape.
 4. **Data model for builds?** `Project(1) → BuildRun(1→n) → Activity(n)`; activities are the source for plan/agent/file/history projections.
@@ -117,7 +119,7 @@ No. "Commit" generates a random 7-hex hash, prepends it to a local commit-histor
 
 ## Mocked-Functionality Questions
 
-1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, npm/git command output, commits/pushes/branches, environment variables, preview updates, metrics, error trigger, plus the entire GitHub layer: OAuth consent, repositories, branch switching/creation, sync, pushes, pull requests and merges, checks, and identity (@abhay-demo).
+1. **What's mocked?** Auth accounts, projects/templates, agents, the build lifecycle, file changes, code/terminal content, npm/git command output, commits/pushes/branches, environment variables, preview updates, metrics, error trigger, the entire GitHub layer (OAuth consent, repositories, branch switching/creation, sync, pushes, pull requests and merges, checks, identity @abhay-demo), and the entire deployment layer (build/deploy commands, environments, live URLs, logs, durations, CI/CD, auto-deploy, env vars, failure).
 2. **How do you mark mocks honestly?** UI labels ("Prototype mode", "Build activity is simulated", "Read-only prototype", "Simulated terminal", "Source control is simulated in prototype mode.", "Environment values are simulated in prototype mode.", "GitHub connection is simulated in prototype mode.", "Pull request is simulated…", "Merge is simulated…") and this docs file.
 3. **What breaks if you remove the timer?** The lifecycle never advances — which is exactly what a real event source must replace; the component already accepts events conceptually.
 4. **Is the preview changed by the prompt?** No. The prompt seeds the initial instruction and composer, but the sample preview stays static; the UI states checks haven't changed it.
@@ -190,8 +192,43 @@ A placeholder tells no product story; a proven integration tells the real flow a
 ### What is the production upgrade path for this mock?
 1) GitHub App OAuth via `/app/api/github/*` with server-side token storage. 2) Replace `lib/github-storage.ts` persistence with API calls for the same snapshot fields. 3) Real pushes in the sandbox git with a remote; capture pushed HEAD server-side. 4) PR and check endpoints wired to `PullRequestForm`/`PullRequestDetails`/`GithubChecks`. 5) Webhooks + SSE to make `sync()` and status badges live. The data model (`GithubSnapshot`, `GithubPullRequest`, `GithubCheck`) is the API contract, so components change as little as possible.
 
-## Deployment Questions (relevant)
+## Phase 6 / Deployment Q&A
 
-1. Are GitHub/Deploy real? No — GitHub is a fully simulated but complete integration flow (see Phase 5 section above); `/deployment` remains a scaffold stub; the header Deploy button explains a later phase.
-2. How does Git relate to Deploy? Each completed build maps to a commit (version = v4, v5…); the Git panel models working tree → staged → commit → history and now pushes to the simulated GitHub repo, foreshadowing CI/CD reacting to commits.
-3. What would "Deploy" do? Point the build artifact at a target (Vercel/Netlify API) and stream status; today it's a disabled-during-build button plus a notice.
+### Why simulate the deployment experience rather than showing a placeholder?
+A placeholder tells an interviewer nothing about the product. Deployment is the final beat of the Architect loop — build → preview → version → publish → live — and presenting it as a real, clickable flow shows the exact UX a production feature will have (Deploy → Deploying… → Deployment ready → live app) with zero infrastructure risk: no credentials, no builds run anywhere, no cloud accounts. The typed snapshot + config adapter is the seam a real provider swaps in behind.
+
+### How would a real deployment be implemented?
+The deterministic timer would be replaced by a provider adapter: the frontend calls `POST /api/deployments` with the `DeploymentConfig`, the server triggers the build (Vercel/Netlify build hook, GitHub Actions workflow on push, or our own CI runner), and build/deploy status streams back over SSE/WebSocket so the same progress timeline and logs render from real events. Record fields map 1:1 to the provider's deployment object (id, branch, commit, status, url, duration).
+
+### Where does GitHub fit in the real deployment flow?
+GitHub is the trigger and the artifact source. "Auto deploy from GitHub" listens for pushes on the production branch (via webhook); a push fires the deploy. In production, push → `POST /api/deployments { branch, commitSha }` → CI builds exactly that commit → status events stream back. The prototype already stores `branch` + `commitSha` from shared GitHub state, so the connection between push, PR merge, and deploy is modeled even though no webhook runs.
+
+### How would deployment credentials stay secure?
+The browser would never hold them. Build config and provider tokens live server-side, encrypted at rest, issued with short-lived, scoped credentials (deploy permission only, per-project), and revocable. Secrets for the app's runtime (like `OPENAI_API_KEY`) are injected by the provider at build/deploy time from its secret store — the prototype's masked environment-variable rows are the honest, never-stored version of that.
+
+### How would you handle environment variables for deployments?
+Per-environment secret sets (production/preview) stored in the provider's encrypted secret store, referenced by name in build config, injected at build and runtime, never returned to the frontend. The UI only ever shows masked placeholder rows ("OPENAI_API_KEY •••••••••• Configured"); no value is ever stored in the browser.
+
+### How would deployment logs stream in real time?
+Provider build logs arrive over SSE/WebSocket as line events `{ stream: "stdout"|"stderr", text }` and append to the record. The prototype's human-readable lines ("Preparing application", "Running production build", "Publishing deployment") are the sanitized, user-facing projection of that stream — real logs are verbose and technical, so production would keep raw logs behind a "raw" toggle and keep the product view human.
+
+### How would rollback work?
+A deployment record is immutable, so rollback = redeploying any prior ready record (its id, branch, commit, and config are all stored). The "Redeploy" action already models this; production would add a confirm + pinned URL.
+
+### How do preview deployments work?
+Every non-production branch gets a preview environment with its own URL (`preview--saas-analytics.architect-demo.app` in the prototype). Production would deploy per pull request/branch, give each a unique preview URL, and wire them to PR checks — the seed preview record (dep-2, feature/dashboard) demonstrates the coexistence of production and preview environments today.
+
+### How do you associate deployments with commits?
+Each record stores `commitSha` (+ branch). On production, the server resolves it to a GitHub commit and links it; push/PR events with a sha create the association automatically. The prototype reads the shared GitHub pushed-head/commit rather than duplicating state — a deployment can be traced to the exact push that created it.
+
+### How would you prevent arbitrary code execution during a build?
+Builds run in ephemeral, disposable sandboxes: no outbound network after dependency install (or an allowlisted registry proxy), CPU/memory/disk quotas, read-only mounts, no host access, short TTL, image-based toolchains. Deploy steps are an allowlisted pipeline (install → build → artifact upload) — a user-supplied string is never executed on the host. The prototype executes nothing at all.
+
+### What is the difference between production and preview environments?
+Same pipeline, different rollouts: production is the stable face (release gate, secrets, rollback, monitoring, no auto-redeploy without approval); previews are cheap, ephemeral, per-branch, deliberately throwaway. The prototype distinguishes them by environment + URL and keeps production as the primary header surface.
+
+### Why does the non-technical flow hide configuration and logs?
+To obey "simple by default, powerful when needed." A creator should experience deploy as one click ("Deploy" → "Deployment ready — your app is live"); framework, build command, output directory, auto-deploy, and masked env vars only appear behind "Advanced settings" in developer surfaces. Hiding the machinery is the point — the product translates for them, the developer opens the hood.
+
+### What is the production upgrade path for this mock?
+1) `POST /api/deployments` + provider adapters behind `deployment-storage.ts`. 2) Stream real build/deploy status + logs over SSE into `DeploymentProgress`/`DeploymentLogs`. 3) Resolve real per-deployment URLs; label/link Preview and Production environments. 4) Webhook-driven auto-deploy on push/merge with branch+commit association. 5) Server-side secret store + per-environment variables. The `DeploymentSnapshot`/`DeploymentConfig`/`DeploymentRecord` types are the API contract, so the UI changes as little as possible — the same principle the GitHub phase used.

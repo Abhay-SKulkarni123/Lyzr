@@ -1,9 +1,10 @@
-import { CloudCog, GitCommitHorizontal, SlidersHorizontal } from "lucide-react";
+import { CloudCog, GitCommitHorizontal, Rocket, SlidersHorizontal } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { WorkspaceView } from "./types";
 
 const devViews: { id: WorkspaceView; label: string; icon: LucideIcon }[] = [
   { id: "git", label: "Git", icon: GitCommitHorizontal },
+  { id: "deployments", label: "Deployments", icon: Rocket },
   { id: "environment", label: "Environment", icon: CloudCog },
   { id: "settings", label: "Settings", icon: SlidersHorizontal },
 ];
