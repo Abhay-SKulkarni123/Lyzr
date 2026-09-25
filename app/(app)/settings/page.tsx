@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/components/dashboard/auth-context";
 import { clearMockSession } from "@/lib/auth";
+import { loadPreferences, savePreferences, type BuildDefaultView } from "@/lib/settings-storage";
 
 const sections = [
   { id: "profile", label: "Profile", icon: UserRound },
@@ -27,6 +28,7 @@ export default function SettingsPage({
       : "profile"
   );
   const [saved, setSaved] = useState(false);
+  const [defaultView, setDefaultView] = useState<BuildDefaultView>(() => loadPreferences().defaultView);
 
   function setSection(section: SectionId) {
     setActiveSection(section);
@@ -79,8 +81,17 @@ export default function SettingsPage({
         <div className="min-w-0 flex-1 space-y-5">
           <SectionPanel
             title={activeSection === "profile" ? "Profile" : activeSection === "preferences" ? "Preferences" : "Notifications"}
-            subtitle={saved ? "Changes saved (mocked)." : "Prototype settings — nothing is persisted."}
+            subtitle={
+              activeSection === "preferences"
+                ? saved
+                  ? "Build view preference saved in this browser."
+                  : "Only the default-view preference persists locally — the rest of Settings is mocked."
+                : saved
+                  ? "Changes saved (mocked)."
+                  : "Prototype settings — nothing is persisted."
+            }
             saved={saved}
+            savedLabel={activeSection === "preferences" ? "Saved." : "Saved (mocked)."}
           >
             {activeSection === "profile" && (
               <>
@@ -109,10 +120,11 @@ export default function SettingsPage({
               </>
             )}
 
-            {activeSection === "preferences" && (
+{activeSection === "preferences" && (
               <form
-                onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                onSubmit={(event) => {
                   event.preventDefault();
+                  savePreferences({ defaultView });
                   noticeSaved();
                 }}
               >
@@ -124,7 +136,12 @@ export default function SettingsPage({
                   </select>
                 </Field>
                 <Field label="Default view after build" id="settings-default-view">
-                  <select id="settings-default-view" defaultValue="preview" className={inputClass}>
+                  <select
+                    id="settings-default-view"
+                    value={defaultView}
+                    onChange={(event) => setDefaultView(event.target.value as BuildDefaultView)}
+                    className={inputClass}
+                  >
                     <option value="preview">Preview</option>
                     <option value="code">Code</option>
                   </select>
@@ -173,8 +190,12 @@ export default function SettingsPage({
           <div className="flex items-start gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
             <LogOut aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600" />
             <p className="text-xs leading-5 text-slate-500">
-              Authentication, accounts, and persistence are mocked in this prototype. No data leaves your
-              browser — the session is stored under <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">architect-demo-auth</code> in localStorage.
+              Authentication, accounts, and profile settings are mocked in this prototype. No data leaves your
+              browser — the sign-in session is stored under{" "}
+              <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">architect-demo-auth</code>{" "}
+              in sessionStorage for this tab, and the build-view preference under{" "}
+              <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">architect-demo-preferences</code>{" "}
+              in localStorage.
             </p>
           </div>
         </div>
@@ -249,11 +270,13 @@ function SectionPanel({
   subtitle,
   children,
   saved,
+  savedLabel = "Saved (mocked).",
 }: {
   title: string;
   subtitle: string;
   children: React.ReactNode;
   saved: boolean;
+  savedLabel?: string;
 }) {
   return (
     <section className="rounded-xl border border-white/[0.08] bg-[#10141d] p-5">
@@ -266,7 +289,7 @@ function SectionPanel({
       {children}
       {saved && (
         <p role="status" className="mt-3 text-xs text-emerald-400">
-          Saved (mocked).
+          {savedLabel}
         </p>
       )}
     </section>

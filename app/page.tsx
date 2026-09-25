@@ -202,13 +202,13 @@ export default function HomePage() {
             <Link
               key={feature.name}
               href={feature.path}
-              className="block rounded-xl border border-sand bg-white p-8 shadow-soft transition-all duration-200 hover:shadow-md hover:-translate-y-1"
+              className="block rounded-xl border border-white/[0.08] bg-[#0c1019] p-8 transition-all duration-200 hover:-translate-y-1 hover:border-coral/40 hover:bg-[#111621]"
             >
-              <div className="mb-5 inline-flex rounded-lg bg-sand p-3 text-coral">
+              <div className="mb-5 inline-flex rounded-lg bg-coral/10 p-3 text-coral">
                 <Icon className="h-7 w-7" />
               </div>
-              <h2 className="mb-3 text-xl font-semibold text-ink">{feature.name}</h2>
-              <p className="text-slate-600">{feature.description}</p>
+              <h2 className="mb-3 text-xl font-semibold text-white">{feature.name}</h2>
+              <p className="text-slate-500">{feature.description}</p>
             </Link>
           );
         })}
@@ -231,7 +231,7 @@ export default function HomePage() {
               href="/deployments"
               className="rounded-lg border border-white/20 px-8 py-4 font-medium text-white transition-all duration-200 hover:bg-white/10"
             >
-              Explore Developer Mode
+              Explore Deployments
             </Link>
           </div>
         ) : (

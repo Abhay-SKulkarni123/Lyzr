@@ -8,6 +8,7 @@ import { useDeploymentState } from "@/components/deployment/useDeploymentState";
 import { GithubConnectionModal } from "@/components/github/GithubConnectionModal";
 import { PullRequestDialog } from "@/components/github/PullRequestDialog";
 import { useGithubState } from "@/components/github/useGithubState";
+import { loadPreferences, type BuildDefaultView } from "@/lib/settings-storage";
 import { ActivityPanel, ActivitySummary } from "./ActivityPanel";
 import { BuildSessionPanel } from "./BuildSessionPanel";
 import { CodeEditor } from "./CodeEditor";
@@ -64,6 +65,11 @@ export function WorkspaceShell({
   const [developerMode, setDeveloperMode] = useState(false);
   const developerModeRef = useRef(developerMode);
   developerModeRef.current = developerMode;
+  const defaultViewRef = useRef<BuildDefaultView>("preview");
+
+  useEffect(() => {
+    defaultViewRef.current = loadPreferences().defaultView;
+  }, []);
   const [tabs, setTabs] = useState<string[]>(["app/page.tsx"]);
   const [activePath, setActivePath] = useState<string | null>("app/page.tsx");
   const [buildStatus, setBuildStatus] = useState<BuildStatus>("idle");
@@ -209,7 +215,7 @@ export function WorkspaceShell({
         });
         setTabs((prev) => (prev.includes("app/page.tsx") ? prev : [...prev, "app/page.tsx"]));
         setActivePath("app/page.tsx");
-        setView(developerModeRef.current ? "code" : "preview");
+        setView(developerModeRef.current && defaultViewRef.current === "code" ? "code" : "preview");
         setNotice("Build complete — preview is ready.");
         if (noticeTimer.current) window.clearTimeout(noticeTimer.current);
         noticeTimer.current = window.setTimeout(() => setNotice(""), 3600);

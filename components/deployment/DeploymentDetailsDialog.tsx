@@ -2,6 +2,7 @@
 
 import { ChevronUp, Globe, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useDialogFocus } from "@/components/shared/useDialogFocus";
 import type { DeploymentRecord } from "@/data/deployment";
 import { DeploymentDetails } from "./DeploymentDetails";
 import { DeploymentLogs } from "./DeploymentLogs";
@@ -15,6 +16,7 @@ type DeploymentDetailsDialogProps = {
 };
 
 export function DeploymentDetailsDialog({ record, busy = false, onClose, onRetry }: DeploymentDetailsDialogProps) {
+  const dialogRef = useDialogFocus<HTMLDivElement>(true);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [tab, setTab] = useState<"details" | "logs">("details");
 
@@ -43,6 +45,7 @@ export function DeploymentDetailsDialog({ record, busy = false, onClose, onRetry
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4"
       onMouseDown={onOverlayClick}
+      ref={dialogRef}
       role="dialog"
     >
       <div className="workspace-scrollbar max-h-[94dvh] w-full overflow-y-auto rounded-t-2xl border border-white/[0.1] bg-[#10141d] shadow-2xl sm:max-w-md sm:rounded-xl">

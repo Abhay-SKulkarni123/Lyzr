@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode, type MouseEvent } from "react";
+import { useDialogFocus } from "@/components/shared/useDialogFocus";
 
 type GithubDialogProps = {
   title: string;
@@ -12,6 +13,7 @@ type GithubDialogProps = {
 };
 
 export function GithubDialog({ title, labelledBy, onClose, children, wide = false }: GithubDialogProps) {
+  const dialogRef = useDialogFocus<HTMLDivElement>(true);
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export function GithubDialog({ title, labelledBy, onClose, children, wide = fals
     <div
       className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4"
       onMouseDown={onOverlayClick}
+      ref={dialogRef}
       role="presentation"
     >
       <div

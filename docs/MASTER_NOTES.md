@@ -47,9 +47,9 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 ## Tech Stack & Repo Structure
 
 - **Framework**: Next.js 14.2.5 (App Router), React 18, strict TypeScript, Tailwind CSS, lucide-react. **No runtime backend, no added dependencies.**
-- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, GitHub integration page `/github`, Deployments overview `/deployments`, live application view `/deployments/live`, plus placeholder `/agents`.
-- **components/**: `workspace/` (the build experience and all build-centric UI), `github/` (GitHub connection, repository/branch pickers, sync, checks, pull request form/details, shared state hook), `deployment/` (deployment button/dialog/status/progress/logs/config/history/details/panel + shared state hook), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`), empty `ui/`, `layout/`, `agents/` scaffold folders.
-- **lib/**: `auth.ts` (mock localStorage session helpers), `github-storage.ts` (GitHub snapshot persistence — key `architect-demo-github`), `deployment-storage.ts` (deployment snapshot persistence — key `architect-demo-deployment`).
+- **Routes**: `/`, `/workspace`, `(auth)/login`, `(auth)/signup`, `(app)/dashboard`, `(app)/projects`, `(app)/templates`, `(app)/settings`, agents overview `/agents`, GitHub integration page `/github`, Deployments overview `/deployments`, live application view `/deployments/live`.
+- **components/**: `workspace/` (the build experience and all build-centric UI), `github/` (GitHub connection, repository/branch pickers, sync, checks, pull request form/details, shared state hook), `deployment/` (deployment button/dialog/status/progress/logs/config/history/details/panel + shared state hook), `dashboard/` (hub shell + cards + modal), `auth/`, `shared/` (`Menu`, `StatusBadge`, `UserMenu`, `useDialogFocus`), empty `ui/`, `layout/` scaffold folders.
+- **lib/**: `auth.ts` (mock sessionStorage session helpers), `github-storage.ts` (GitHub snapshot persistence — key `architect-demo-github`), `deployment-storage.ts` (deployment snapshot persistence — key `architect-demo-deployment`), `settings-storage.ts` (build-view preference persistence — key `architect-demo-preferences`).
 - **data/**: typed fixtures — `projects.ts`, `templates.ts`, `builds.ts` (agents, recipes, activities, history), `developer.ts` (file tree, code samples, terminal mock, git mock, env vars, settings), `github.ts` (GitHub identity, mock repositories, branches, checks, pull requests, notes, helpers), `deployment.ts` (deployment types, frameworks, progress steps, seed records, deterministic logs, URL builder, notes).
 - **types/**: reserved; workspace types live in `components/workspace/types.ts`.
 - **docs/**: `MASTER_NOTES.md` and `INTERVIEW_PREP.md` only.
@@ -84,7 +84,8 @@ Guest entry is also available — `/workspace` itself is not auth-gated (it rece
 | Deployments overview | `/deployments` page (production card, config, history, retry) | Shared state with workspace |
 | Live application view | `/deployments/live` (LIVE · Simulated bar + preview) | Simulated render |
 | Deployment failure demo + retry | Deterministic "Simulate deployment failure" toggle | Functional simulation |
-| Real agents | Placeholder button/page | Deferred / not connected |
+| Agents overview | `/agents` page over fixture agents | Functional read-only simulation |
+| Real agents | — | Deferred / not connected |
 | Real AI, code gen, sandbox, terminal exec, backend | — | Deferred / not connected |
 
 ---
@@ -139,7 +140,7 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - `?next=` read via `window.location.search` (avoids `useSearchParams`/Suspense).
 
 ### Workspace seeding
-`app/workspace/page.tsx` reads `searchParams` (server-side, Next 14), resolves project id → display name, and passes `initialPrompt`/`projectName`/`autoRun` into `WorkspaceShell`. Keeps `/workspace` stateless and deep-linkable. `WorkspaceShell` resolves the prompt to a scenario via `resolveScenario` (deterministic, once per session) and persists it under `architect-demo-project` so `/deployments/live` can show the same app.
+`app/workspace/page.tsx` reads `searchParams` (server-side, Next 14), resolves a project id → display name **and scenario id**, and passes `initialPrompt`/`projectName`/`projectScenarioId`/`autoRun` into `WorkspaceShell`. Keeps `/workspace` stateless and deep-linkable. `WorkspaceShell` pins the scenario via `scenarioById(projectScenarioId)` when the route came from a project/template/dashboard card; otherwise it falls back to the deterministic keyword resolver (`resolveScenarioResult`) on `promptStack[0] ?? initialPrompt`. The resolved scenario is persisted under `architect-demo-project` so `/deployments/live` shows the same app.
 
 ### Folder responsibilities
 - `app/workspace/page.tsx` — resolves context only.
@@ -228,6 +229,15 @@ A restrained polish pass focused on first-run onboarding, prompt-aware coherence
 - **Build/iteration history**: build history rows now say `Build 1/2/3…` with a human change summary per build (`changeSummary` maps prompt keywords → what-changed sentences); new builds push `{version, label, summary, prompt}` onto a `VersionSummary` list; seed versions are scenario-specific.
 - **Validation**: type-check + lint + `next build` clean; production-server smoke test 200 on all 12 routes + 4 seeded scenario prompts; SSR verified each seed renders its expected scenario (northstar/deskflow/sprintboard/ledger-app present and others absent); deterministic resolver cases verified (analytics → SaaS, customer-support phrase → deskflow, "kanban board" → sprintboard, finance → ledger, unrelated → SaaS).
 
+### Phase 8 — Accessibility & Preferences Polish (done)
+A no-new-features pass funded by the assignment-compliance review and a follow-up product polish: focus management, honest copy, and the one in-app preference that is now real.
+- **Dialog focus management**: new shared `useDialogFocus` hook (`components/shared/useDialogFocus.ts`) traps Tab focus inside modal overlays and restores keyboard focus to the opener on close. Applied to all five dialog surfaces — `GithubDialog` (connection + PR), `DeploymentDialog`, `DeploymentDetailsDialog`, `NewProjectModal`, and `OAuthProviderDialog` (which also gains a body scroll lock). The hook is declared before each dialog's own focus effect so opener focus is captured before the dialog steals it — keeping the restoration correct under React StrictMode's dev double-invoke.
+- **Default-view preference is real**: Settings persists the "Default view after build" choice under `architect-demo-preferences` (`lib/settings-storage.ts`); `WorkspaceShell` reads it on mount and applies it post-build (`code` only when developer mode is on AND the preference says code, else `preview`). Settings copy now accurately names `sessionStorage` for the sign-in session vs `localStorage` for the preference.
+- **Landing cleanup**: the feature-card grid was a stray light-theme block on the dark page — converted to the dark system (`#0c1019`, white text, coral icon chips). The bottom CTA "Explore Developer Mode" was retitled "Explore Deployments" so the label matches its `/deployments` destination.
+- **Docs refresh**: `README.md` and `MASTER_NOTES.md` updated to the current state (project-scoped scenario identity, functional `/agents`, honest simulated-vs-functional table, storage keys).
+- **Version**: bumped `package.json` + `package-lock.json` to 1.0.0.
+- **Validation**: type-check + lint + `next build` clean; production-server smoke test on all routes.
+
 ---
 
 ## Important Trade-offs
@@ -248,7 +258,7 @@ A restrained polish pass focused on first-run onboarding, prompt-aware coherence
 
 ## Current Limitations
 
-- No persistence beyond `architect-demo-auth`, `architect-demo-github`, `architect-demo-deployment`, and `architect-demo-project` (projects, prompts, history, commits, env edits vanish on reload).
+- No persistence beyond `architect-demo-auth`, `architect-demo-github`, `architect-demo-deployment`, `architect-demo-project`, and `architect-demo-preferences` (projects, prompts, history, commits, env edits vanish on reload).
 - Scenario selection is keyword-based and deterministic — it describes intent of the mock app but never drives real generation; seeds (4 scenarios) are the only prompts that change which app is built. A richer resolver (LLM/semantic classification or an explicit project picker) is a production upgrade.
 - GitHub state is per-browser: navigation between workspace and `/github` shares state through localStorage, but there is no server, no cross-device sync, and no real GitHub account/remote.
 - Deployment state is per-browser and fully simulated: no real builds, artifacts, environments, URLs, webhooks, or CI/CD; live URLs (`*.architect-demo.app`) do not resolve to a real service; "Open Live App" renders the same static preview.

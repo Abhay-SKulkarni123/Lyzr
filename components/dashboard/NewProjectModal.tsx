@@ -3,6 +3,7 @@
 import { LoaderCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useDialogFocus } from "@/components/shared/useDialogFocus";
 import { templates } from "@/data/templates";
 
 type NewProjectModalProps = {
@@ -20,6 +21,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const nameRef = useRef<HTMLInputElement | null>(null);
+  const dialogRef = useDialogFocus<HTMLDivElement>(open);
 
   useEffect(() => {
     if (open) {
@@ -60,6 +62,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="New project"

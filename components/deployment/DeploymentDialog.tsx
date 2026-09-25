@@ -2,6 +2,7 @@
 
 import { ChevronDown, Rocket, X } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useDialogFocus } from "@/components/shared/useDialogFocus";
 import type { DeploymentEnvironment } from "@/data/deployment";
 import { DeploymentConfig } from "./DeploymentConfig";
 import { DeploymentFailure } from "./DeploymentFailure";
@@ -24,6 +25,7 @@ type DeploymentDialogProps = {
 const busyStates = ["preparing", "building", "deploying"];
 
 export function DeploymentDialog({ deployment, branches, projectName, commitSha, onClose, onOpenPreview, onOpenLiveApp, onViewDeployments }: DeploymentDialogProps) {
+  const dialogRef = useDialogFocus<HTMLDivElement>(true);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [advanced, setAdvanced] = useState(false);
   const [draft, setDraft] = useState(() => ({ ...deployment.config }));
@@ -72,6 +74,7 @@ export function DeploymentDialog({ deployment, branches, projectName, commitSha,
       aria-modal="true"
       className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 sm:items-center sm:p-4"
       onMouseDown={onOverlayClick}
+      ref={dialogRef}
       role="dialog"
     >
       <div className="workspace-scrollbar max-h-[94dvh] w-full overflow-y-auto rounded-t-2xl border border-white/[0.1] bg-[#10141d] shadow-2xl sm:max-w-lg sm:rounded-xl">

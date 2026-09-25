@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ChevronRight, LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useDialogFocus } from "@/components/shared/useDialogFocus";
 
 export type SocialProvider = "google" | "github";
 
@@ -41,6 +42,7 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
   const [busy, setBusy] = useState(false);
   const [showOtherAccountNote, setShowOtherAccountNote] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useDialogFocus<HTMLDivElement>(true);
   const busyRef = useRef(false);
 
   const isGoogle = provider === "google";
@@ -54,8 +56,12 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
       }
     }
     window.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
     if (dialogRef.current) dialogRef.current.focus();
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
   }, [onClose]);
 
   async function confirm() {
@@ -81,6 +87,7 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
       onClick={busy ? undefined : onClose}
+      ref={overlayRef}
       role="presentation"
     >
       <div
