@@ -1,3 +1,5 @@
+import type { ScenarioId } from "./scenarios";
+
 export type ProjectStatus = "active" | "building" | "draft";
 
 export type DeploymentStatus = "deployed" | "staging" | "not-deployed";
@@ -9,6 +11,7 @@ export type ProjectType = "dashboard" | "portal" | "landing" | "web-app";
 export type Project = {
   id: string;
   name: string;
+  scenarioId?: ScenarioId;
   description: string;
   status: ProjectStatus;
   deploymentStatus: DeploymentStatus;
@@ -28,8 +31,9 @@ export const projects: Project[] = [
   {
     id: "northstar-analytics",
     name: "SaaS Analytics",
+    scenarioId: "saas-analytics",
     description:
-      "Revenue, traffic, and customer analytics dashboard for a modern startup, with charts and KPI cards.",
+      "Revenue, MRR, active users, churn, and plan analytics for a subscription business.",
     status: "active",
     deploymentStatus: "deployed",
     type: "dashboard",
@@ -39,9 +43,10 @@ export const projects: Project[] = [
   },
   {
     id: "support-portal",
-    name: "Customer Support Portal",
+    name: "Customer Support",
+    scenarioId: "customer-support",
     description:
-      "Ticket inbox, customer context panel, and response composer for a support team.",
+      "Ticket inbox, status and priority filters, and response-time visibility for a support team.",
     status: "building",
     deploymentStatus: "staging",
     type: "portal",
@@ -50,39 +55,29 @@ export const projects: Project[] = [
     tone: "mint",
   },
   {
-    id: "fintech-landing",
-    name: "Fintech Landing Page",
+    id: "project-hub",
+    name: "Project Management",
+    scenarioId: "project-management",
     description:
-      "Marketing landing page with product sections, pricing, and signup prompts for a payments company.",
+      "Kanban board, sprint tracking, and task cards for a small engineering team.",
     status: "active",
-    deploymentStatus: "deployed",
-    type: "landing",
+    deploymentStatus: "staging",
+    type: "web-app",
     framework: "Next.js",
     updatedAt: "1 day ago",
-    tone: "coral",
+    tone: "sky",
   },
   {
-    id: "ai-research-dashboard",
-    name: "AI Research Dashboard",
+    id: "finance-tracker",
+    name: "Personal Finance",
+    scenarioId: "personal-finance",
     description:
-      "Experiment tracking and model comparison views for an internal ML research team.",
+      "Account balances, budgets, and spending by category for personal money management.",
     status: "draft",
     deploymentStatus: "not-deployed",
     type: "dashboard",
     framework: "Next.js",
     updatedAt: "3 days ago",
-    tone: "sky",
-  },
-  {
-    id: "operations-console",
-    name: "Operations Console",
-    description:
-      "Internal workspace for monitoring deployments, service health, and incidents.",
-    status: "draft",
-    deploymentStatus: "not-deployed",
-    type: "web-app",
-    framework: "Next.js",
-    updatedAt: "1 week ago",
-    tone: "rose",
+    tone: "amber",
   },
 ];

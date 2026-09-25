@@ -14,10 +14,14 @@ import { PullRequestDialog } from "@/components/github/PullRequestDialog";
 import { useGithubState } from "@/components/github/useGithubState";
 import { CommitHistory } from "@/components/workspace/CommitHistory";
 import { gitChanges, gitHistory } from "@/data/developer";
-import { githubChecks, githubSimulatedNote, type GithubPullRequest } from "@/data/github";
+import { githubChecks, githubSimulatedNote, repoById, type GithubPullRequest } from "@/data/github";
+import { readProjectContext, scenarioById } from "@/data/scenarios";
 
 export default function GitHubPage() {
-  const github = useGithubState({});
+  const projectContext = readProjectContext();
+  const defaultRepoId = scenarioById(projectContext.scenarioId).githubRepoId;
+  const defaultRepo = repoById(defaultRepoId);
+  const github = useGithubState({ defaultRepoId });
   const [githubModalOpen, setGithubModalOpen] = useState(false);
   const [prDialog, setPrDialog] = useState<{ open: boolean; compare: string }>({ open: false, compare: "feature/analytics" });
   const [expandedPr, setExpandedPr] = useState<number | null>(null);
@@ -34,7 +38,7 @@ export default function GitHubPage() {
 
   const headCommit = gitHistory[0];
   const aheadCommits = github.connected && headCommit ? (github.pushedHead === headCommit.hash ? 0 : 1) : 0;
-  const pullRequests = github.pullRequests.filter((pr) => pr.repoId === (github.repo?.id ?? "saas-analytics"));
+  const pullRequests = github.pullRequests.filter((pr) => pr.repoId === (github.repo?.id ?? defaultRepoId));
 
   function showNotice(message: string) {
     setNotice(message);
@@ -45,7 +49,7 @@ export default function GitHubPage() {
   function pushToGithub() {
     const ok = github.push(headCommit?.hash ?? "");
     if (ok) {
-      showNotice(`Pushed to GitHub · ${github.repo ? `${github.repo.owner}/${github.repo.name}` : "Abhay-demo/saas-analytics"} · ${github.branch}${headCommit ? ` · ${headCommit.hash} ${headCommit.message}` : ""} (simulated).`);
+      showNotice(`Pushed to GitHub · ${github.repo ? `${github.repo.owner}/${github.repo.name}` : `${defaultRepo?.owner}/${defaultRepo?.name}`} · ${github.branch}${headCommit ? ` · ${headCommit.hash} ${headCommit.message}` : ""} (simulated).`);
     } else {
       showNotice(github.syncError ?? "Push failed — try again.");
     }

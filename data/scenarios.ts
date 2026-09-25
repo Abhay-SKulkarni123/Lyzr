@@ -35,6 +35,7 @@ export type BuildScenario = {
   keywords: string[];
   packageName: string;
   previewUrl: string;
+  githubRepoId: string;
   initialRecipe: BuildRecipe;
   iterationRecipe: BuildRecipe;
   codeSamples: Record<string, string[]>;
@@ -1001,6 +1002,7 @@ export const scenarios: BuildScenario[] = [
     keywords: ["analytics", "analytic", "saas", "kpi", "revenue", "dashboard", "startup"],
     packageName: "northstar-analytics",
     previewUrl: "https://saas-analytics.architect-demo.app",
+    githubRepoId: "saas-analytics",
     initialRecipe,
     iterationRecipe,
     codeSamples: analyticsCodeSamples,
@@ -1014,6 +1016,7 @@ export const scenarios: BuildScenario[] = [
     keywords: ["support", "customer service", "helpdesk", "help desk", "ticket", "inbox", "queue", "zendesk"],
     packageName: "deskflow",
     previewUrl: "https://support.architect-demo.app",
+    githubRepoId: "customer-portal",
     initialRecipe: customerSupportInitial,
     iterationRecipe: customerSupportIteration,
     codeSamples: customerSupportSamples,
@@ -1027,6 +1030,7 @@ export const scenarios: BuildScenario[] = [
     keywords: ["project management", "project", "kanban board", "kanban", "sprint", "tasks", "task", "engineering", "roadmap"],
     packageName: "sprintboard",
     previewUrl: "https://project.architect-demo.app",
+    githubRepoId: "sprintboard",
     initialRecipe: projectManagementInitial,
     iterationRecipe: projectManagementIteration,
     codeSamples: projectManagementSamples,
@@ -1040,6 +1044,7 @@ export const scenarios: BuildScenario[] = [
     keywords: ["personal finance", "finance", "money", "budget", "expense", "expenses", "spending", "wealth", "saving", "tracker"],
     packageName: "ledger-app",
     previewUrl: "https://finance.architect-demo.app",
+    githubRepoId: "ledger-app",
     initialRecipe: personalFinanceInitial,
     iterationRecipe: personalFinanceIteration,
     codeSamples: personalFinanceSamples,
@@ -1052,15 +1057,19 @@ export function scenarioById(id: ScenarioId): BuildScenario {
   return scenario ?? scenarios[0];
 }
 
-export function resolveScenario(prompt: string): BuildScenario {
+export function resolveScenarioResult(prompt: string): { scenario: BuildScenario; matched: boolean } {
   const normalized = prompt.trim().toLowerCase();
   const ordered: BuildScenario[] = [scenarios[1], scenarios[2], scenarios[3], scenarios[0]];
   for (const scenario of ordered) {
     if (scenario && scenario.keywords.some((keyword) => normalized.includes(keyword))) {
-      return scenario;
+      return { scenario, matched: true };
     }
   }
-  return scenarios[0];
+  return { scenario: scenarios[0], matched: false };
+}
+
+export function resolveScenario(prompt: string): BuildScenario {
+  return resolveScenarioResult(prompt).scenario;
 }
 
 export function changeSummary(prompt: string): string {

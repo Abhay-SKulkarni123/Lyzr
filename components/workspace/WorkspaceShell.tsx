@@ -35,9 +35,11 @@ import {
   filesOverviewFor,
   historyFor,
   initialChangesFor,
-  resolveScenario,
+  resolveScenarioResult,
+  scenarioById,
   seedVersionsFor,
   writeProjectContext,
+  type ScenarioId,
   type VersionSummary,
 } from "@/data/scenarios";
 
@@ -48,16 +50,20 @@ const tickDuration = 950;
 type WorkspaceShellProps = {
   initialPrompt?: string;
   projectName?: string;
+  projectScenarioId?: ScenarioId;
   autoRun?: boolean;
 };
 
 export function WorkspaceShell({
   initialPrompt = defaultPrompt,
   projectName,
+  projectScenarioId,
   autoRun = false,
 }: WorkspaceShellProps) {
   const [view, setView] = useState<WorkspaceView>("preview");
   const [developerMode, setDeveloperMode] = useState(false);
+  const developerModeRef = useRef(developerMode);
+  developerModeRef.current = developerMode;
   const [tabs, setTabs] = useState<string[]>(["app/page.tsx"]);
   const [activePath, setActivePath] = useState<string | null>("app/page.tsx");
   const [buildStatus, setBuildStatus] = useState<BuildStatus>("idle");
@@ -65,17 +71,28 @@ export function WorkspaceShell({
   const [buildIndex, setBuildIndex] = useState(0);
   const [latestPrompt, setLatestPrompt] = useState(initialPrompt);
   const [promptStack, setPromptStack] = useState<string[]>([]);
+
+  const resolved = useMemo(
+    () =>
+      projectScenarioId
+        ? { scenario: scenarioById(projectScenarioId), matched: true }
+        : resolveScenarioResult(promptStack[0] ?? initialPrompt),
+    [promptStack, initialPrompt, projectScenarioId]
+  );
+  const scenario = resolved.scenario;
+  const showSamplePreview = !projectScenarioId && !resolved.matched;
+
   const [versions, setVersions] = useState<VersionSummary[]>(() =>
-    seedVersionsFor(resolveScenario(initialPrompt))
+    seedVersionsFor(resolved.scenario)
   );
   const [notice, setNotice] = useState("");
   const [shouldFailNext, setShouldFailNext] = useState(false);
   const [failedPrompt, setFailedPrompt] = useState("");
   const [changes, setChangesState] = useState<GitChange[]>(() =>
-    initialChangesFor(resolveScenario(initialPrompt))
+    initialChangesFor(resolved.scenario)
   );
   const [commits, setCommitsState] = useState<GitCommit[]>(() =>
-    historyFor(resolveScenario(initialPrompt))
+    historyFor(resolved.scenario)
   );
   const [githubModalOpen, setGithubModalOpen] = useState(false);
   const [prDialog, setPrDialog] = useState<{ open: boolean; compare: string }>({ open: false, compare: "feature/analytics" });
@@ -87,11 +104,7 @@ export function WorkspaceShell({
   latestPromptRef.current = latestPrompt;
   const noticeTimer = useRef<number | null>(null);
   const autoRunHandled = useRef(false);
-  const scenario = useMemo(
-    () => resolveScenario(promptStack[0] ?? initialPrompt),
-    [promptStack, initialPrompt]
-  );
-  const github = useGithubState({ onNotice: showNotice });
+  const github = useGithubState({ onNotice: showNotice, defaultRepoId: scenario.githubRepoId });
   const deployment = useDeploymentState({
     onNotice: showNotice,
     project: { name: scenario.name, previewUrl: scenario.previewUrl },
@@ -196,7 +209,7 @@ export function WorkspaceShell({
         });
         setTabs((prev) => (prev.includes("app/page.tsx") ? prev : [...prev, "app/page.tsx"]));
         setActivePath("app/page.tsx");
-        setView("code");
+        setView(developerModeRef.current ? "code" : "preview");
         setNotice("Build complete — preview is ready.");
         if (noticeTimer.current) window.clearTimeout(noticeTimer.current);
         noticeTimer.current = window.setTimeout(() => setNotice(""), 3600);
@@ -318,6 +331,11 @@ export function WorkspaceShell({
             <div className="relative flex min-h-0 flex-1 items-stretch justify-center overflow-hidden p-2 sm:p-3 lg:p-4">
               <PreviewStatus live={deployment.live} status={buildStatus} />
               <ScenarioPreview scenarioId={scenario.id} />
+              {showSamplePreview && (
+                <p className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-[#0c1018]/90 px-3 py-1 text-center text-[9px] text-slate-500">
+                  Shared sample preview — this prompt didn’t match a bundled scaffold, so the sample app is shown.
+                </p>
+              )}
             </div>
           )}
           {view === "code" && (

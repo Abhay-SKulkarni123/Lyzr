@@ -25,9 +25,10 @@ export type PullRequestInput = {
 
 type UseGithubStateArgs = {
   onNotice?: (message: string) => void;
+  defaultRepoId?: string;
 };
 
-export function useGithubState({ onNotice }: UseGithubStateArgs) {
+export function useGithubState({ onNotice, defaultRepoId = "saas-analytics" }: UseGithubStateArgs) {
   const [snapshot, setSnapshot] = useState(() => loadGithubSnapshot());
   const [connecting, setConnecting] = useState(false);
   const [syncPhase, setSyncPhase] = useState<GithubSyncPhase>("idle");
@@ -83,7 +84,7 @@ export function useGithubState({ onNotice }: UseGithubStateArgs) {
       setSnapshot((prev) => ({
         ...prev,
         connected: true,
-        repoId: prev.repoId ?? "saas-analytics",
+        repoId: prev.repoId ?? defaultRepoId,
         branch: prev.branch ?? "main",
         lastSyncedAt: prev.lastSyncedAt ?? "Just now",
       }));
@@ -187,7 +188,7 @@ export function useGithubState({ onNotice }: UseGithubStateArgs) {
     const number = nextPrNumber(snapshot.pullRequests);
     const pr: GithubPullRequest = {
       number,
-      repoId: snapshot.repoId ?? "saas-analytics",
+      repoId: snapshot.repoId ?? defaultRepoId,
       title: input.title.trim() || "Untitled pull request",
       description: input.description.trim(),
       author: githubIdentity.login,
