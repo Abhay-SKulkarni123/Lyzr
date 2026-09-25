@@ -12,7 +12,7 @@ export const AUTH_STORAGE_KEY = "architect-demo-auth";
 const SERVER_SCOPE_KEY = "architect-demo-server-scope";
 
 export const DEMO_USER: MockUser = {
-  name: "Abhay Sharma",
+  name: "Abhay S Kulkarni",
   email: "abhay@architect.app",
 };
 

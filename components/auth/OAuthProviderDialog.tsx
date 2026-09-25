@@ -7,7 +7,7 @@ import { useDialogFocus } from "@/components/shared/useDialogFocus";
 export type SocialProvider = "google" | "github";
 
 export const DEMO_OAUTH_ACCOUNT = {
-  name: "Abhay Sharma",
+  name: "Abhay S Kulkarni",
   email: "abhay@architect.app",
   handle: "abhay-demo",
 };

@@ -1,13 +1,15 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Import, Plus } from "lucide-react";
 import { useState } from "react";
+import { ImportProjectModal } from "@/components/dashboard/ImportProjectModal";
 import { NewProjectModal } from "@/components/dashboard/NewProjectModal";
 import { ProjectGrid } from "@/components/dashboard/ProjectGrid";
 import { projects } from "@/data/projects";
 
 export default function ProjectsPage() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -19,19 +21,30 @@ export default function ProjectsPage() {
             Your projects and recent work.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-coral px-4 text-xs font-semibold text-white transition hover:bg-[#ff795c]"
-        >
-          <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-          New Project
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 px-4 text-xs font-medium text-slate-300 transition hover:border-white/25 hover:text-white"
+          >
+            <Import aria-hidden="true" className="h-3.5 w-3.5" />
+            Import
+          </button>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-coral px-4 text-xs font-semibold text-white transition hover:bg-[#ff795c]"
+          >
+            <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+            New Project
+          </button>
+        </div>
       </div>
 
       <ProjectGrid projects={projects} />
 
       <NewProjectModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <ImportProjectModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }

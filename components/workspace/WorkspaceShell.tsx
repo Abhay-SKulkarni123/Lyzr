@@ -49,20 +49,23 @@ const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern start
 const tickDuration = 950;
 
 type WorkspaceShellProps = {
+  autoRun?: boolean;
+  imported?: boolean;
   initialPrompt?: string;
   projectName?: string;
   projectScenarioId?: ScenarioId;
-  autoRun?: boolean;
 };
 
 export function WorkspaceShell({
+  autoRun = false,
+  imported = false,
   initialPrompt = defaultPrompt,
   projectName,
   projectScenarioId,
-  autoRun = false,
 }: WorkspaceShellProps) {
   const [view, setView] = useState<WorkspaceView>("preview");
   const [developerMode, setDeveloperMode] = useState(false);
+  const [importBannerDismissed, setImportBannerDismissed] = useState(false);
   const developerModeRef = useRef(developerMode);
   developerModeRef.current = developerMode;
   const defaultViewRef = useRef<BuildDefaultView>("preview");
@@ -312,6 +315,21 @@ export function WorkspaceShell({
         status={buildStatus}
       />
       <WorkspaceToolbar activeView={view} developerMode={developerMode} onChange={setView} status={buildStatus} />
+      {imported && !importBannerDismissed && (
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] bg-coral/[0.06] px-4 py-2">
+          <p className="min-w-0 truncate text-[11px] text-slate-300">
+            Imported project ready. Continue working on {appName} in Architect.
+          </p>
+          <button
+            type="button"
+            onClick={() => setImportBannerDismissed(true)}
+            aria-label="Dismiss imported project notice"
+            className="shrink-0 text-[11px] font-medium text-coral transition hover:text-[#ff795c]"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <BuildSessionPanel
         activeStep={activeStep}
         flat={flat}

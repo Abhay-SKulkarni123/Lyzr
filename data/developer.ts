@@ -401,9 +401,9 @@ export type GitCommit = {
 };
 
 export const gitHistory: GitCommit[] = [
-  { hash: "a81d3f2", message: "Add analytics dashboard", time: "2 minutes ago", author: "Abhay Sharma" },
-  { hash: "7ce21ab", message: "Create dashboard shell", time: "18 minutes ago", author: "Abhay Sharma" },
-  { hash: "9f0a1bd", message: "Scaffold northstar-analytics", time: "1 day ago", author: "Abhay Sharma" },
+  { hash: "a81d3f2", message: "Add analytics dashboard", time: "2 minutes ago", author: "Abhay S Kulkarni" },
+  { hash: "7ce21ab", message: "Create dashboard shell", time: "18 minutes ago", author: "Abhay S Kulkarni" },
+  { hash: "9f0a1bd", message: "Scaffold northstar-analytics", time: "1 day ago", author: "Abhay S Kulkarni" },
 ];
 
 export const gitMockBranches = ["main", "feature/analytics", "release/1.0"];

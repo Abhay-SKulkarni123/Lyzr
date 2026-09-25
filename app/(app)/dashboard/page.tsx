@@ -1,8 +1,10 @@
 "use client";
 
-import { ArrowRight, CloudDownload, FolderKanban, Sparkles, WandSparkles } from "lucide-react";
+import { ArrowRight, CloudDownload, FolderKanban, Import, Sparkles, WandSparkles } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { BuildPrompt } from "@/components/dashboard/BuildPrompt";
+import { ImportProjectModal } from "@/components/dashboard/ImportProjectModal";
 import { ProjectGrid } from "@/components/dashboard/ProjectGrid";
 import { useAuth } from "@/components/dashboard/auth-context";
 import { projects } from "@/data/projects";
@@ -24,6 +26,7 @@ const stats = [
 export default function DashboardPage() {
   const { session } = useAuth();
   const firstName = session.user.name.split(" ")[0];
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -57,7 +60,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-medium text-slate-400">Build something new</h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-slate-400">Build something new</h2>
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:border-white/25 hover:text-slate-200"
+          >
+            <Import aria-hidden="true" className="h-3.5 w-3.5" />
+            Import a project
+          </button>
+        </div>
         <BuildPrompt />
       </div>
 
@@ -98,6 +111,8 @@ export default function DashboardPage() {
           <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
         </Link>
       </div>
+
+      <ImportProjectModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }

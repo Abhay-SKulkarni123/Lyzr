@@ -7,10 +7,11 @@ const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern start
 export default function WorkspacePage({
   searchParams,
 }: {
-  searchParams: { prompt?: string; project?: string; new?: string };
+  searchParams: { prompt?: string; project?: string; new?: string; imported?: string };
 }) {
   const initialPrompt = searchParams.prompt || defaultPrompt;
   const autoRun = Boolean(searchParams.new && searchParams.prompt);
+  const imported = searchParams.imported === "1";
 
   let projectName: string | undefined;
   let projectScenarioId: ScenarioId | undefined;
@@ -27,10 +28,11 @@ export default function WorkspacePage({
   return (
     <WorkspaceShell
       key={searchParams.project ?? searchParams.prompt ?? "default"}
+      autoRun={autoRun}
+      imported={imported}
       initialPrompt={initialPrompt}
       projectName={projectName}
       projectScenarioId={projectScenarioId}
-      autoRun={autoRun}
     />
   );
 }

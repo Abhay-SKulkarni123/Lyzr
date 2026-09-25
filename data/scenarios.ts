@@ -1097,9 +1097,9 @@ export function initialChangesFor(scenario: BuildScenario): GitChange[] {
 
 export function historyFor(scenario: BuildScenario): GitCommit[] {
   return [
-    { hash: "a81d3f2", message: `Add ${scenario.name}`, time: "2 minutes ago", author: "Abhay Sharma" },
-    { hash: "7ce21ab", message: "Create application shell", time: "18 minutes ago", author: "Abhay Sharma" },
-    { hash: "9f0a1bd", message: `Scaffold ${scenario.packageName}`, time: "1 day ago", author: "Abhay Sharma" },
+    { hash: "a81d3f2", message: `Add ${scenario.name}`, time: "2 minutes ago", author: "Abhay S Kulkarni" },
+    { hash: "7ce21ab", message: "Create application shell", time: "18 minutes ago", author: "Abhay S Kulkarni" },
+    { hash: "9f0a1bd", message: `Scaffold ${scenario.packageName}`, time: "1 day ago", author: "Abhay S Kulkarni" },
   ];
 }
 

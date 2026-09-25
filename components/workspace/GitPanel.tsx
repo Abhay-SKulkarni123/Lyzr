@@ -65,7 +65,7 @@ export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, g
     window.setTimeout(() => {
       const hash = Array.from({ length: 7 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
       onCommitsChange([
-        { hash, message: message.trim() || "Update dashboard components", author: "Abhay Sharma", time: "Just now" },
+        { hash, message: message.trim() || "Update dashboard components", author: "Abhay S Kulkarni", time: "Just now" },
         ...commits,
       ]);
       onChangesChange([]);

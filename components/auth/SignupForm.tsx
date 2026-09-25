@@ -69,7 +69,7 @@ export function SignupForm() {
               autoComplete="name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Abhay Sharma"
+              placeholder="Abhay S Kulkarni"
               className={fieldClass(!!(error && !name.trim()))}
             />
           </div>
