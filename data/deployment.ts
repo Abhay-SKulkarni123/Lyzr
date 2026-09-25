@@ -57,9 +57,9 @@ export type DeploymentProgressStep = {
 };
 
 export const deploymentProgressSteps: DeploymentProgressStep[] = [
-  { id: "preparing", label: "Preparing", detail: "Preparing deployment…" },
-  { id: "building", label: "Building", detail: "Building your application…" },
-  { id: "deploying", label: "Deploying", detail: "Publishing application…" },
+  { id: "preparing", label: "Preparing", detail: "Preparing deployment..." },
+  { id: "building", label: "Building", detail: "Building your application..." },
+  { id: "deploying", label: "Deploying", detail: "Publishing application..." },
   { id: "ready", label: "Ready", detail: "Deployment ready" },
 ];
 
@@ -190,7 +190,7 @@ export const defaultDeploymentSnapshot: DeploymentSnapshot = {
 };
 
 export const deploymentSimulatedNote = "Deployment is simulated in prototype mode.";
-export const liveUrlSimulatedNote = "Simulated live URL — this address does not host a real application.";
+export const liveUrlSimulatedNote = "Simulated live URL. This address does not host a real application.";
 export const deploymentStepsById = (status: DeploymentStatus): DeploymentProgressStep["id"][] => {
   if (status === "preparing") return ["preparing"];
   if (status === "building") return ["preparing", "building"];

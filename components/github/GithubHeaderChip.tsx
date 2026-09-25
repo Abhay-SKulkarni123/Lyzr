@@ -18,9 +18,9 @@ export function GithubHeaderChip({ github, changes, onOpen }: GithubHeaderChipPr
   if (!github.connected) {
     label = "Connect to GitHub";
   } else if (github.connecting) {
-    label = "Connecting…";
+    label = "Connecting...";
   } else if (syncing) {
-    label = "Syncing…";
+    label = "Syncing...";
     tone = "active";
   } else if (changes > 0) {
     label = `${changes} change${changes === 1 ? "" : "s"} ready`;

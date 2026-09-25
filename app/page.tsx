@@ -136,8 +136,7 @@ export default function HomePage() {
           Build anything. Just describe it.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-400">
-          Architect turns plain language into a working app — plan, code, preview, and deploy from one
-          workspace.
+          Describe an app in plain language. Plan, build, preview, and deploy it from one workspace.
         </p>
         {mounted && signedIn ? (
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -166,13 +165,13 @@ export default function HomePage() {
           </div>
         )}
         <p className="mt-5 text-[11px] text-slate-600">
-          Prototype — Google/GitHub sign-in is simulated and never leaves your browser.
+          Prototype. Google/GitHub sign-in is simulated and never leaves your browser.
         </p>
       </section>
 
       <section className="mb-16">
         <p className="mb-4 text-center text-xs uppercase tracking-[0.16em] text-slate-500">
-          Try it — pick a prompt
+          Try a prompt
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {examplePrompts.map((item) => (
@@ -217,7 +216,7 @@ export default function HomePage() {
       <section className="mt-16 rounded-xl border border-white/[0.08] bg-[#0c1019] p-12 text-center">
         <h2 className="text-3xl font-bold text-white">Ready to build?</h2>
         <p className="mt-3 mb-8 text-lg text-slate-400">
-          Skip the setup — pick a prompt above or start from a fresh idea.
+          Skip the setup. Pick a prompt above or start from a fresh idea.
         </p>
         {mounted && signedIn ? (
           <div className="flex flex-col items-center justify-center gap-4 md:flex-row">

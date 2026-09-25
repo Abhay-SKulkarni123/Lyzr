@@ -60,7 +60,7 @@ export default function DeploymentsPage() {
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
             Production and preview deployments, shared with the workspace.
-            {deployment.live ? " Your app is live." : " Nothing is live yet — deploy from the workspace."}
+            {deployment.live ? " Your app is live." : " Nothing is live yet. Deploy from the workspace."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ export default function DeploymentsPage() {
             type="button"
           >
             <Rocket aria-hidden="true" className="h-3.5 w-3.5" />
-            {busy ? "Deploying…" : "New deployment"}
+            {busy ? "Deploying..." : "New deployment"}
           </button>
         </div>
       </div>

@@ -15,7 +15,7 @@ export function PreviewStatus({ status, live = false }: PreviewStatusProps) {
         className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-400/25 bg-[#0c1018]/90 px-3 py-1.5 shadow-lg backdrop-blur"
       >
         <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin text-amber-300" />
-        <span className="text-[10px] font-medium text-amber-200">Updating preview…</span>
+        <span className="text-[10px] font-medium text-amber-200">Updating preview...</span>
         <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
       </div>
     );

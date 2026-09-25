@@ -51,7 +51,7 @@ export default function GitHubPage() {
     if (ok) {
       showNotice(`Pushed to GitHub · ${github.repo ? `${github.repo.owner}/${github.repo.name}` : `${defaultRepo?.owner}/${defaultRepo?.name}`} · ${github.branch}${headCommit ? ` · ${headCommit.hash} ${headCommit.message}` : ""} (simulated).`);
     } else {
-      showNotice(github.syncError ?? "Push failed — try again.");
+      showNotice(github.syncError ?? "Push failed. Try again.");
     }
   }
 
@@ -106,7 +106,7 @@ export default function GitHubPage() {
             <div className="min-w-0 flex-1">
               <h2 className="text-base font-semibold text-white">Connect GitHub to push and review changes</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                Link the simulated architect-demo account, choose a repository and branch, then push your local commits and open pull requests. Everything here is mocked and labeled — nothing leaves this browser.
+                Link the simulated architect-demo account, choose a repository and branch, then push local commits and open pull requests. Prototype integration. No GitHub credentials or repositories are accessed.
               </p>
             </div>
             <button
@@ -185,7 +185,7 @@ export default function GitHubPage() {
               <History aria-hidden="true" className="h-4 w-4 text-coral" />
               Recent commits
             </h2>
-            <p className="mb-2 text-[9px] text-slate-600">Commits made in the Architect workspace (mock history).</p>
+            <p className="mb-2 text-[9px] text-slate-600">Simulated commit history from the Architect workspace.</p>
             <CommitHistory commits={gitHistory} />
           </section>
 

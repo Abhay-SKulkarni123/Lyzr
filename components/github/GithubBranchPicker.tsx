@@ -73,7 +73,7 @@ export function GithubBranchPicker({ branches, selected, onSelect, onCreate }: G
           </button>
         </form>
       )}
-      <p className="mt-2 text-[8px] text-slate-600">Branch switching is simulated — no real git operation runs.</p>
+      <p className="mt-2 text-[8px] text-slate-600">Branch switching is simulated. No real git operation runs.</p>
     </div>
   );
 }

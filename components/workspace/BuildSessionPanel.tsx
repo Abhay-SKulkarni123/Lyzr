@@ -127,7 +127,7 @@ export function BuildSessionPanel({
 
         <p className="mt-1.5 truncate text-[10px] text-slate-500">
           {busy
-            ? `“${latestPrompt}” — Architect is working through the plan and the preview updates as each step finishes.`
+            ? `“${latestPrompt}”. Architect is working through the plan. The preview updates as each step finishes.`
             : finished
             ? `${changed.length} files updated · checks passed · preview is ready`
             : "Architect hit a snag while making this change. Steps that finished are safe to review."}
@@ -186,9 +186,9 @@ export function BuildSessionPanel({
 
         <p className="mt-2.5 text-[8px] text-slate-600">
           {busy
-            ? "Simulated build — no files are generated on your machine."
+            ? "Simulated build. No files are generated on your machine."
             : finished
-            ? "Prototype result — changes are simulated locally."
+            ? "Prototype result. Changes are simulated locally."
             : "This failure is part of the simulated build flow."}
         </p>
       </div>

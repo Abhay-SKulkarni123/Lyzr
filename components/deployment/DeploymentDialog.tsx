@@ -80,7 +80,7 @@ export function DeploymentDialog({ deployment, branches, projectName, commitSha,
       <div className="workspace-scrollbar max-h-[94dvh] w-full overflow-y-auto rounded-t-2xl border border-white/[0.1] bg-[#10141d] shadow-2xl sm:max-w-lg sm:rounded-xl">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/[0.07] bg-[#10141d]/95 px-4 py-3 backdrop-blur">
           <h2 className="text-sm font-semibold text-white" id="deployment-dialog-title">
-            {busy ? "Deploying…" : status === "ready" ? "Deployment ready" : status === "failed" || status === "cancelled" ? "Deployment" : "Deploy project"}
+            {busy ? "Deploying..." : status === "ready" ? "Deployment ready" : status === "failed" || status === "cancelled" ? "Deployment" : "Deploy project"}
           </h2>
           <button
             aria-label="Close deployment dialog"
@@ -120,7 +120,7 @@ export function DeploymentDialog({ deployment, branches, projectName, commitSha,
               />
               <DeploymentLogs compact logs={deployment.activeRecord?.logs ?? []} />
               <div className="flex items-center justify-between gap-2 border-t border-white/[0.07] pt-3">
-                <p className="text-[8px] text-slate-600">You can leave — this view is simulated and pauses locally.</p>
+                <p className="text-[8px] text-slate-600">You can leave. This view is simulated and pauses locally.</p>
                 <button
                   className="rounded-md border border-white/[0.12] px-2.5 py-1 text-[10px] text-slate-300 transition hover:border-white/25 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60"
                   onClick={deployment.cancel}

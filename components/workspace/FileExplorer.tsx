@@ -41,7 +41,7 @@ function TreeRow({ node, depth, isCollapsed, toggle, selectedFile, modifiedFiles
   if (node.kind === "folder") {
     const closed = isCollapsed(node.path);
     return (
-      <div className={closed ? "" : ""}>
+      <div>
         <button
           aria-expanded={!closed}
           aria-label={`${node.name} folder`}
@@ -138,7 +138,7 @@ export function FileExplorer({ selectedFile, onSelect, modifiedFiles, project }:
           <Search aria-hidden="true" className="pointer-events-none absolute left-2 h-3 w-3 text-slate-600" />
           <input
             className="w-full rounded-md border border-white/[0.07] bg-[#0b0f19] py-1.5 pl-7 pr-2 text-[10px] text-white outline-none placeholder:text-slate-600 focus:border-coral/40 focus:ring-1 focus:ring-coral/30"
-            placeholder="Filter files…"
+            placeholder="Filter files..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />

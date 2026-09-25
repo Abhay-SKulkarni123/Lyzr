@@ -85,10 +85,10 @@ export default function SettingsPage({
               activeSection === "preferences"
                 ? saved
                   ? "Build view preference saved in this browser."
-                  : "Only the default-view preference persists locally — the rest of Settings is mocked."
+                  : "Only the default-view preference persists locally. The rest of Settings is mocked."
                 : saved
                   ? "Changes saved (mocked)."
-                  : "Prototype settings — nothing is persisted."
+                  : "Prototype settings. Nothing else is persisted."
             }
             saved={saved}
             savedLabel={activeSection === "preferences" ? "Saved." : "Saved (mocked)."}
@@ -191,7 +191,7 @@ export default function SettingsPage({
             <LogOut aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600" />
             <p className="text-xs leading-5 text-slate-500">
               Authentication, accounts, and profile settings are mocked in this prototype. No data leaves your
-              browser — the sign-in session is stored under{" "}
+              browser. The sign-in session is stored under{" "}
               <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">architect-demo-auth</code>{" "}
               in sessionStorage for this tab, and the build-view preference under{" "}
               <code className="rounded bg-white/[0.06] px-1 py-0.5 font-mono text-[10px] text-slate-400">architect-demo-preferences</code>{" "}
@@ -231,7 +231,7 @@ function SaveButton({ label }: { label: string }) {
       className="inline-flex h-9 items-center gap-2 rounded-lg bg-coral px-4 text-xs font-semibold text-white transition hover:bg-[#ff795c] disabled:cursor-not-allowed disabled:opacity-70"
     >
       {saving ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" /> : <Save aria-hidden="true" className="h-3.5 w-3.5" />}
-      {saving ? "Saving…" : label}
+      {saving ? "Saving..." : label}
     </button>
   );
 }

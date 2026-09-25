@@ -96,7 +96,7 @@ export function ActivityPanel({
         </div>
 
         <p className="text-[8px] leading-[14px] text-slate-700">
-          Build activity is simulated for this prototype — no files are generated.
+          Build activity is simulated for this prototype. No files are generated.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export function ActivityPanel({
             disabled={busy || status === "error"}
             onClick={onArmFailure}
             type="button"
-            title="Demo trigger — makes the next build fail so you can test retry"
+            title="Demo trigger. Makes the next build fail so you can test retry"
           >
             Arm failure for next build
           </button>
@@ -141,7 +141,7 @@ export function ActivitySummary({ status, activeStep, flat }: ActivitySummaryPro
   if (busy) {
     icon = <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin text-coral" />;
     title = current ? agentName(current.agentId) : "Architect";
-    subtitle = current?.message ?? "Working through your request…";
+    subtitle = current?.message ?? "Working through your request...";
   } else if (status === "complete") {
     icon = <Check aria-hidden="true" className="h-3.5 w-3.5 text-emerald-300" />;
     title = "Build complete";

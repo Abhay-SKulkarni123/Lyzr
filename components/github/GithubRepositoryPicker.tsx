@@ -58,7 +58,7 @@ export function GithubRepositoryPicker({ selectedId, created, onSelect, onCreate
           <Search aria-hidden="true" className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-600" />
           <input
             className="h-7 w-full rounded-md border border-white/[0.08] bg-[#0b0f19] pl-7 pr-2 text-[10px] text-white outline-none placeholder:text-slate-600 focus:border-coral/40"
-            placeholder="Search repositories…"
+            placeholder="Search repositories..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -146,7 +146,7 @@ export function GithubRepositoryPicker({ selectedId, created, onSelect, onCreate
               Create repository
             </button>
           </div>
-          <p className="mt-2 text-[8px] text-slate-600">This is a mock — no repository is created on GitHub.</p>
+          <p className="mt-2 text-[8px] text-slate-600">This is a mock. No repository is created on GitHub.</p>
         </form>
       )}
 
@@ -191,7 +191,7 @@ export function GithubRepositoryPicker({ selectedId, created, onSelect, onCreate
         })}
         {repos.length === 0 && <li className="px-2 py-4 text-center text-[10px] text-slate-600">No repositories match your search.</li>}
       </ul>
-      <p className="mt-2 text-[8px] text-slate-600">{githubSimulatedNote} Repository list is mock data.</p>
+      <p className="mt-2 text-[8px] text-slate-600">{githubSimulatedNote} Repository list is sample data.</p>
     </div>
   );
 }

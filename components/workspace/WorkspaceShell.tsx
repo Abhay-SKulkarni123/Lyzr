@@ -216,7 +216,7 @@ export function WorkspaceShell({
         setTabs((prev) => (prev.includes("app/page.tsx") ? prev : [...prev, "app/page.tsx"]));
         setActivePath("app/page.tsx");
         setView(developerModeRef.current && defaultViewRef.current === "code" ? "code" : "preview");
-        setNotice("Build complete — preview is ready.");
+        setNotice("Build complete. Preview is ready.");
         if (noticeTimer.current) window.clearTimeout(noticeTimer.current);
         noticeTimer.current = window.setTimeout(() => setNotice(""), 3600);
       }
@@ -260,7 +260,7 @@ export function WorkspaceShell({
   function armFailure() {
     if (busy) return;
     setShouldFailNext(true);
-    showNotice("Failure armed — the next build will fail by design.");
+    showNotice("Failure armed. The next build will fail by design.");
   }
 
   function toggleDeveloperMode(enabled: boolean) {
@@ -339,7 +339,7 @@ export function WorkspaceShell({
               <ScenarioPreview scenarioId={scenario.id} />
               {showSamplePreview && (
                 <p className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-[#0c1018]/90 px-3 py-1 text-center text-[9px] text-slate-500">
-                  Shared sample preview — this prompt didn’t match a bundled scaffold, so the sample app is shown.
+                  Shared sample preview. This prompt didn’t match a bundled scaffold, so the sample app is shown.
                 </p>
               )}
             </div>

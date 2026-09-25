@@ -24,7 +24,7 @@ export default function AgentsPage() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
           Architect runs coordinated agents during every build. These agents are simulated in the
-          prototype — each one performs its role against mock data so you can watch the flow end to end.
+          prototype. Each one performs its role against mock data so you can watch the flow end to end.
         </p>
       </div>
 

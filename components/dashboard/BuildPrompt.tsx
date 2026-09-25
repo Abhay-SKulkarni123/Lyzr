@@ -39,14 +39,14 @@ export function BuildPrompt() {
             id="dashboard-prompt"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            placeholder="Describe the product you want to build…"
+            placeholder="Describe the product you want to build..."
             rows={3}
             disabled={loading}
             className="workspace-scrollbar w-full resize-none bg-transparent text-sm leading-6 text-white outline-none placeholder:text-slate-600"
           />
           <div className="mt-3 flex items-center justify-between gap-2">
             <span className="hidden text-[10px] text-slate-600 sm:block">
-              Start with an idea — Architect scaffolds the project for you.
+              Start with an idea. Architect scaffolds the project for you.
             </span>
             <button
               type="submit"
@@ -56,7 +56,7 @@ export function BuildPrompt() {
               {loading ? (
                 <>
                   <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-                  Building…
+                  Building...
                 </>
               ) : (
                 <>

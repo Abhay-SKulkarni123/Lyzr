@@ -19,12 +19,12 @@ export function PromptComposer({ status, onSubmit, developerMode = false }: Prom
 
   const placeholder =
     status === "error"
-      ? "The last build failed — try again with a tweaked prompt"
+      ? "The last build failed. Try again with a different prompt"
       : busy
-      ? "Architect is working through your request…"
+      ? "Architect is working through your request..."
       : status === "complete"
-      ? "Build complete — describe another change to iterate on it"
-      : "Describe what you want to build… e.g. make the dashboard more compact";
+      ? "Build complete. Describe another change to iterate on it"
+      : "Describe what you want to build. For example, make the dashboard more compact";
 
   const hint =
     status === "error"
@@ -33,10 +33,10 @@ export function PromptComposer({ status, onSubmit, developerMode = false }: Prom
       ? "Architect is simulating a build · no code is generated"
       : status === "complete"
       ? developerMode
-        ? "Build complete — inspect files in Code, then commit them in Git."
-        : "Build complete — ask Architect for another change."
+        ? "Build complete. Inspect files in Code, then commit them in Git."
+        : "Build complete. Ask Architect for another change."
       : developerMode
-      ? "Developer mode is on — Architect still builds; you can inspect and commit the result."
+      ? "Developer mode is on. Architect still builds. You can inspect and commit the result."
       : "Describe an idea, ask for a change, or start with a blank canvas.";
 
   function submit(event?: FormEvent<HTMLFormElement>) {
@@ -104,7 +104,7 @@ export function PromptComposer({ status, onSubmit, developerMode = false }: Prom
               {busy ? (
                 <>
                   <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-                  Building…
+                  Building...
                 </>
               ) : (
                 <>

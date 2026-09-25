@@ -134,7 +134,7 @@ export function SignupForm() {
           {status === "loading" ? (
             <>
               <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-              Creating account…
+              Creating account...
             </>
           ) : (
             <>

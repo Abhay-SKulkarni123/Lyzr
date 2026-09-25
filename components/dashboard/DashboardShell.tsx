@@ -20,7 +20,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
   if (!mounted || !getMockSession().signedIn) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[#0b0f19] text-xs text-slate-500">
-        Loading…
+        Loading...
       </div>
     );
   }

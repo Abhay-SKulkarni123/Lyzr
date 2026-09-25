@@ -222,8 +222,8 @@ export const defaultGithubSnapshot: GithubSnapshot = {
 };
 
 export const githubSimulatedNote = "GitHub connection is simulated in prototype mode.";
-export const githubPrSimulatedNote = "Pull request is simulated — nothing was created on GitHub.";
-export const githubMergeSimulatedNote = "Merge is simulated — the PR status changed in local state only.";
-export const githubOAuthNote = "GitHub OAuth is simulated — you will never be asked for a real token or password.";
+export const githubPrSimulatedNote = "Pull request is simulated. Nothing was created on GitHub.";
+export const githubMergeSimulatedNote = "Merge is simulated. The PR status changed in local state only.";
+export const githubOAuthNote = "GitHub OAuth is simulated. You will never be asked for a real token or password.";
 export const githubConnectedNote = "Connection state is stored in this browser only and is not sent anywhere.";
-export const githubSyncSteps = ["Syncing…", "Checking repository…", "Comparing changes…", "Sync complete"];
+export const githubSyncSteps = ["Syncing...", "Checking repository...", "Comparing changes...", "Sync complete"];

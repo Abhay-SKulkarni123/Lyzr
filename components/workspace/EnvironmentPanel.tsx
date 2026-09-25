@@ -195,7 +195,7 @@ export function EnvironmentPanel({ onNotice }: EnvironmentPanelProps) {
       )}
 
       <p className="mt-3 text-[9px] leading-[15px] text-slate-600">
-        {envSimulatedNote} Values are mock strings only — no real secrets are stored or sent to the browser.
+        {envSimulatedNote} Values are mock strings only. No real secrets are stored or sent to the browser.
       </p>
     </section>
   );

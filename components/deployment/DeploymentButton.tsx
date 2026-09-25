@@ -13,11 +13,11 @@ const busyStates: Status[] = ["preparing", "building", "deploying"];
 
 export function DeploymentButton({ status, disabled = false, onDeploy }: DeploymentButtonProps) {
   const busy = busyStates.includes(status);
-  const label = busy ? "Deploying…" : status === "ready" ? "Live" : status === "failed" ? "Redeploy" : "Deploy";
+  const label = busy ? "Deploying..." : status === "ready" ? "Live" : status === "failed" ? "Redeploy" : "Deploy";
   const ariaLabel =
-    busy ? "Deployment in progress — open deployment details"
-    : status === "ready" ? "Live — open deployment details"
-    : `${label} — open deployment details`;
+    busy ? "Deployment in progress. Open deployment details"
+    : status === "ready" ? "Live. Open deployment details"
+    : `${label}. Open deployment details`;
 
   return (
     <button

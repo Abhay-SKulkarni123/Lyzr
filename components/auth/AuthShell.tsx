@@ -26,7 +26,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           </div>
           {children}
           <p className="mt-6 text-center text-[11px] text-slate-600">
-            Prototype — authentication and accounts are mocked.
+            Prototype. Authentication and accounts are mocked.
           </p>
         </div>
       </div>

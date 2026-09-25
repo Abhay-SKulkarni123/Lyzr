@@ -89,7 +89,7 @@ export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, g
       if (ok) {
         onNotice(`Pushed to GitHub · ${repoFullName(github.repo)} · ${github.branch}${head ? ` · ${head.hash} ${head.message}` : ""} (simulated).`);
       } else {
-        onNotice(github.syncError ?? "Push failed — try again.");
+        onNotice(github.syncError ?? "Push failed. Try again.");
       }
     }, 600);
   }
@@ -175,7 +175,7 @@ export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, g
             <span className="sr-only">Commit message</span>
             <input
               className="w-full rounded-md border border-white/[0.1] bg-[#0b0f19] px-2 py-1.5 text-[10px] text-white outline-none placeholder:text-slate-600 focus:border-coral/40"
-              placeholder="Commit message (mock)"
+              placeholder="Commit message"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
             />
@@ -188,7 +188,7 @@ export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, g
               type="button"
             >
               {committing ? <LoaderCircle aria-hidden="true" className="h-3 w-3 animate-spin" /> : <GitCommitHorizontal aria-hidden="true" className="h-3 w-3" />}
-              {committing ? "Committing…" : "Commit"}
+              {committing ? "Committing..." : "Commit"}
             </button>
             <button
               aria-label={github.connected ? "Push to GitHub" : "Connect GitHub to push"}
@@ -198,7 +198,7 @@ export function GitPanel({ changes, onChangesChange, commits, onCommitsChange, g
               type="button"
             >
               {pushing ? <LoaderCircle aria-hidden="true" className="h-3 w-3 animate-spin" /> : <Upload aria-hidden="true" className="h-3 w-3" />}
-              {pushing ? "Pushing…" : github.connected ? "Push to GitHub" : "Push"}
+              {pushing ? "Pushing..." : github.connected ? "Push to GitHub" : "Push"}
             </button>
             <button
               aria-label="Create pull request"

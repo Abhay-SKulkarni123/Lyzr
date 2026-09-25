@@ -86,7 +86,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm font-medium text-white">Start from a template</p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Four ready-made starting points — dashboards, landing pages, admin panels, and portals.
+              Ready-made starting points for dashboards, landing pages, admin panels, and portals.
             </p>
           </div>
         </div>

@@ -22,7 +22,7 @@ export function DeploymentFailure({ onRetry, busy = false }: DeploymentFailurePr
         </div>
       </div>
       <p className="mt-3 rounded-md border border-rose-400/20 bg-rose-500/[0.05] p-2.5 text-[9px] leading-4 text-rose-200">
-        This failure is a simulated demo failure. Retry returns the deployment to the normal deterministic flow.
+        This failure is part of the simulated flow. Retry runs a normal deployment.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
@@ -32,7 +32,7 @@ export function DeploymentFailure({ onRetry, busy = false }: DeploymentFailurePr
           type="button"
         >
           {busy ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" /> : <TriangleAlert aria-hidden="true" className="h-3.5 w-3.5" />}
-          {busy ? "Deploying…" : "Retry deployment"}
+          {busy ? "Deploying..." : "Retry deployment"}
         </button>
         <p className="text-[8px] text-slate-600">Full build logs are shown below.</p>
       </div>

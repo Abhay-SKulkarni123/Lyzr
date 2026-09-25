@@ -55,7 +55,7 @@ export function DeploymentPanel({ deployment, branch, commitSha, projectName, on
             onClick={() => deployment.deploy({ projectName, branch, commitSha })}
             type="button"
           >
-            {busy ? "Deploying…" : status === "ready" ? "Redeploy" : "Deploy"}
+            {busy ? "Deploying..." : status === "ready" ? "Redeploy" : "Deploy"}
           </button>
         </span>
       </div>
@@ -71,7 +71,7 @@ export function DeploymentPanel({ deployment, branch, commitSha, projectName, on
       {!busy && status === "ready" && deployment.activeRecord && (
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-400/[0.05] px-3 py-2.5">
           <p className="flex-1 text-[10px] text-emerald-200">
-            {deployment.activeRecord.projectName} is live — <span className="font-mono">{deployment.activeRecord.url}</span>
+            {deployment.activeRecord.projectName} is live · <span className="font-mono">{deployment.activeRecord.url}</span>
           </p>
           <button
             className="rounded-md border border-emerald-400/30 px-2 py-1 text-[9px] font-medium text-emerald-200 transition hover:bg-emerald-400/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"

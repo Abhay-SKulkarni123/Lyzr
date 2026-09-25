@@ -105,7 +105,7 @@ export function CodeEditor({ tabs, activePath, modifiedFiles, samples, onSelect,
               className={`h-6 rounded border border-white/[0.08] bg-[#0b0f19] pl-7 pr-2 text-[9px] text-white outline-none transition-all placeholder:text-slate-600 focus:border-coral/40 focus:ring-1 focus:ring-coral/30 ${
                 searchOpen ? "w-36" : "w-7 cursor-pointer focus:w-36"
               }`}
-              placeholder="Find…"
+              placeholder="Find..."
               value={query}
               role="searchbox"
               onChange={(event) => setQuery(event.target.value)}

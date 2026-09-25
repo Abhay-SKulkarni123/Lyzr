@@ -32,7 +32,7 @@ type WorkspaceHeaderProps = {
 export function WorkspaceHeader({ status, projectName, developerMode, changes, branch, github, onOpenGithub, onDeveloperModeChange, onNotice, deploymentStatus, onOpenDeployment }: WorkspaceHeaderProps) {
   const busy = isBuildPhase(status);
   const stateText = busy
-    ? "Building…"
+    ? "Building..."
     : status === "complete"
     ? "Build complete"
     : status === "error"

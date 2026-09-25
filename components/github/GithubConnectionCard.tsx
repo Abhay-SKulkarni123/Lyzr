@@ -22,7 +22,7 @@ export function GithubConnectionCard({ github, changes, aheadCommits, headCommit
   const syncingError = github.syncPhase === "error";
 
   const statusLabel = syncing
-    ? "Syncing…"
+    ? "Syncing..."
     : syncingError
     ? "Sync failed"
     : changes > 0
@@ -170,7 +170,7 @@ export function GithubConnectionCard({ github, changes, aheadCommits, headCommit
       )}
 
       <p className="mt-3 text-[8px] leading-4 text-slate-600">
-        GitHub connection is simulated in prototype mode — nothing on GitHub is created, pushed, or synchronized.
+        GitHub connection is simulated in prototype mode. Nothing on GitHub is created, pushed, or synchronized.
       </p>
     </section>
   );

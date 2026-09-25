@@ -42,7 +42,7 @@ export function DashboardHeader({ onNotice }: DashboardHeaderProps) {
           aria-label="Search"
         >
           <Search aria-hidden="true" className="h-3.5 w-3.5" />
-          Search…
+          Search...
           <kbd className="ml-6 hidden rounded border border-white/[0.08] bg-white/[0.03] px-1 font-mono text-[9px] text-slate-600 md:inline">
             ⌘K
           </kbd>

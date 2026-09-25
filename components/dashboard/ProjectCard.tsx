@@ -11,9 +11,9 @@ type ProjectCardProps = {
 };
 
 const NOTICE_MESSAGES: Record<string, string> = {
-  Rename: "Project renaming is a prototype action in this demo.",
-  Duplicate: "Duplicating projects is a prototype action in this demo.",
-  Archive: "Archiving projects is a prototype action in this demo.",
+  Rename: "Project renaming is a prototype action.",
+  Duplicate: "Duplicating projects is a prototype action.",
+  Archive: "Archiving projects is a prototype action.",
 };
 
 export function ProjectCard({ project }: ProjectCardProps) {

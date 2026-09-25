@@ -13,7 +13,7 @@ export type AgentDefinition = {
 export const agents: AgentDefinition[] = [
   { id: "architect", name: "Architect", role: "Plans structure and flow" },
   { id: "ui-builder", name: "UI Builder", role: "Creates components and layout" },
-  { id: "data-agent", name: "Data Agent", role: "Prepares mock data and charts" },
+  { id: "data-agent", name: "Data Agent", role: "Prepares sample data and charts" },
   { id: "qa-agent", name: "QA Agent", role: "Runs interface checks" },
 ];
 
@@ -238,5 +238,5 @@ export function getAgentActivities(
 export function labelFromPrompt(prompt: string): string {
   const words = prompt.trim().split(/\s+/).slice(0, 5).join(" ");
   if (!words) return "Build change";
-  return words.length > 34 ? `${words.slice(0, 34)}…` : words;
+  return words.length > 34 ? `${words.slice(0, 34)}...` : words;
 }

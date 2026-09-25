@@ -112,7 +112,7 @@ const customerSupportInitial = makeRecipe({
     },
     {
       agentId: "data-agent",
-      message: "Prepared mock support queue data",
+      message: "Prepared sample support queue data",
       filePath: "lib/support.ts",
     },
     {
@@ -207,7 +207,7 @@ const projectManagementInitial = makeRecipe({
     },
     {
       agentId: "data-agent",
-      message: "Prepared mock sprint data",
+      message: "Prepared sample sprint data",
       filePath: "lib/projects.ts",
     },
     {
@@ -302,7 +302,7 @@ const personalFinanceInitial = makeRecipe({
     },
     {
       agentId: "data-agent",
-      message: "Prepared mock transaction data",
+      message: "Prepared sample transaction data",
       filePath: "lib/transactions.ts",
     },
     {

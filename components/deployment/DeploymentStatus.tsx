@@ -13,9 +13,9 @@ const tone: Record<Status, { dot: string; text: string; busy?: boolean }> = {
 
 const statusLabel: Record<Status, string> = {
   idle: "Idle",
-  preparing: "Preparing…",
-  building: "Building…",
-  deploying: "Deploying…",
+  preparing: "Preparing...",
+  building: "Building...",
+  deploying: "Deploying...",
   ready: "Ready",
   failed: "Failed",
   cancelled: "Cancelled",

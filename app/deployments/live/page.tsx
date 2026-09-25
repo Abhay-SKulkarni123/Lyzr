@@ -44,7 +44,7 @@ export default function LiveDeploymentPage() {
                 <span className="font-mono">{liveRecord.commitSha}</span>
               </>
             ) : (
-              "No production deployment yet — deploy from the workspace."
+              "No production deployment yet. Deploy from the workspace."
             )}
           </span>
         </div>
@@ -83,7 +83,7 @@ export default function LiveDeploymentPage() {
       </div>
 
       <p className="flex items-center justify-center gap-1.5 border-t border-white/[0.06] px-4 py-2 text-center text-[8px] text-slate-600">
-        {liveRecord?.url ?? context.previewUrl} · Simulated live URL — this address does not host a real application. The page renders the same preview shared with the workspace.
+        {liveRecord?.url ?? context.previewUrl} · Simulated live URL. This address does not host a real application. The page renders the same preview shared with the workspace.
       </p>
 
       {details && (

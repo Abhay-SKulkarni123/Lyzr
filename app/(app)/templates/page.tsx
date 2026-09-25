@@ -15,7 +15,7 @@ export default function TemplatesPage() {
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-600">Starters</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Templates</h1>
         <p className="mt-1.5 text-sm text-slate-500">
-          Pick a scaffold and Architect builds it for you — or describe something custom.
+          Start with a template or describe what you want to build.
         </p>
       </div>
 

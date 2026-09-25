@@ -43,12 +43,12 @@ export function CommitHistory({ commits }: CommitHistoryProps) {
       {active && (
         <div className="mt-3 rounded-md border border-white/[0.07] bg-white/[0.02] p-3">
           <p className="text-[10px] text-slate-300">
-            <span className="font-mono text-[11px] text-coral">{active.hash}</span> — {active.message}
+            <span className="font-mono text-[11px] text-coral">{active.hash}</span> · {active.message}
           </p>
           <p className="mt-1 text-[9px] text-slate-600">
             {active.author} committed {active.time}
           </p>
-          <p className="mt-2 text-[8px] text-slate-600">Commit history shown here is static mock data. {gitSimulatedNote}</p>
+          <p className="mt-2 text-[8px] text-slate-600">Commit history shown here is sample data. {gitSimulatedNote}</p>
         </div>
       )}
     </section>

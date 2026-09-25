@@ -109,7 +109,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
                 id="new-project-prompt"
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
-                placeholder="Describe what Architect should build…"
+                placeholder="Describe what Architect should build..."
                 rows={4}
                 className="workspace-scrollbar w-full resize-none rounded-lg border border-white/10 bg-[#0b0f19] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-coral/50 focus:ring-2 focus:ring-coral/20"
               />
@@ -156,7 +156,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
               {loading ? (
                 <>
                   <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-                  Starting…
+                  Starting...
                 </>
               ) : (
                 "Start building"

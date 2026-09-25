@@ -43,7 +43,7 @@ export function GithubConnectionModal({ github, onClose }: GithubConnectionModal
                 {github.identity.name}
                 <GithubStatus label={`@${github.identity.login}`} tone="neutral" />
               </p>
-              <p className="text-[9px] text-slate-500">This is a simulated tester account — not a real GitHub identity.</p>
+              <p className="text-[9px] text-slate-500">This is a simulated tester account, not a real GitHub identity.</p>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export function GithubConnectionModal({ github, onClose }: GithubConnectionModal
               type="button"
             >
               {github.connecting ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" /> : null}
-              {github.connecting ? "Connecting…" : "Connect with GitHub"}
+              {github.connecting ? "Connecting..." : "Connect with GitHub"}
             </button>
           </div>
         </div>

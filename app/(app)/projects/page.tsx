@@ -16,7 +16,7 @@ export default function ProjectsPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-600">Library</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Projects</h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            {projects.length} projects — drawn from mock data for the prototype.
+            Your projects and recent work.
           </p>
         </div>
         <button

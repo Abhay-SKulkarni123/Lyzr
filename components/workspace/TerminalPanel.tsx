@@ -80,7 +80,7 @@ export function TerminalPanel({ packageName = "northstar-analytics" }: { package
             aria-label="Terminal command"
             className="w-full bg-transparent text-[11px] text-white outline-none placeholder:text-slate-700"
             onKeyDown={handleKeyDown}
-            placeholder="Try npm run build, npm run lint, git status…"
+            placeholder="Try npm run build, npm run lint, git status..."
             value={input}
             onChange={(event) => setInput(event.target.value)}
           />
@@ -110,7 +110,7 @@ export function TerminalPanel({ packageName = "northstar-analytics" }: { package
             Run
           </button>
         </div>
-        <p className="mt-2 text-[8px] text-slate-600">Commands are not executed. Only safe demo commands return mock output.</p>
+        <p className="mt-2 text-[8px] text-slate-600">Commands are not executed. Only whitelisted commands return sample output.</p>
       </form>
     </section>
   );

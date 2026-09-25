@@ -111,7 +111,7 @@ export function LoginForm() {
           {status === "loading" ? (
             <>
               <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-              Signing in…
+              Signing in...
             </>
           ) : (
             <>

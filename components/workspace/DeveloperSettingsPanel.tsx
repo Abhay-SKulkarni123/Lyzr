@@ -28,7 +28,7 @@ export function DeveloperSettingsPanel() {
       </dl>
 
       <p className="mt-3 text-[9px] leading-[15px] text-slate-600">
-        Values are mock configuration for this prototype. Nothing here changes the real runtime.
+        Values are sample configuration. Nothing here changes a real runtime.
       </p>
     </section>
   );

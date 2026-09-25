@@ -78,7 +78,7 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
   const brandIcon = isGoogle ? <GoogleMark className="h-5 w-5" /> : <GithubMark className="h-5 w-5" />;
   const brandName = isGoogle ? "Google" : "GitHub";
   const continueLabel = isGoogle ? "Sign in" : "Authorize";
-  const busyLabel = isGoogle ? "Signing in…" : "Authorizing…";
+  const busyLabel = isGoogle ? "Signing in..." : "Authorizing...";
   const continueClass = isGoogle
     ? "rounded-lg bg-[#4285f4] text-white transition hover:bg-[#3367d6] disabled:cursor-not-allowed disabled:opacity-70"
     : "rounded-lg bg-slate-100 text-slate-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70";
@@ -153,7 +153,7 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
               )}
             </div>
             <p className="mt-5 border-t border-white/[0.06] pt-3 text-center text-[9px] tracking-wide text-slate-600">
-              Simulated {brandName} sign-in — no real account is connected, and no request leaves your browser.
+              Simulated {brandName} sign-in. No real account is connected, and no request leaves your browser.
             </p>
           </div>
         )}
@@ -215,7 +215,7 @@ export function OAuthProviderDialog({ provider, onClose, onConfirm }: OAuthProvi
               </button>
             </div>
             <p className="mt-4 border-t border-white/[0.06] pt-3 text-center text-[9px] tracking-wide text-slate-600">
-              Simulated {brandName} sign-in — no real account is connected, and no request leaves your browser.
+              Simulated {brandName} sign-in. No real account is connected, and no request leaves your browser.
             </p>
           </div>
         )}

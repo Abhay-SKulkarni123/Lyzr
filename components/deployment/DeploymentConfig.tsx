@@ -83,7 +83,7 @@ export function DeploymentConfig({ config, onConfigChange }: DeploymentConfigPro
             Auto deploy from GitHub
           </span>
           <span className="mt-0.5 block text-[8px] leading-4 text-slate-600" id="auto-deploy-hint">
-            Deploys when matching pushes land on the production branch. Simulated — no events are received.
+            Deploys when matching pushes land on the production branch. Simulated. No events are received.
           </span>
         </span>
       </label>
