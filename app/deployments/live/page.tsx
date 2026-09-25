@@ -11,7 +11,10 @@ import type { DeploymentRecord } from "@/data/deployment";
 import { readProjectContext, type ProjectContext } from "@/data/scenarios";
 
 export default function LiveDeploymentPage() {
-  const deployment = useDeploymentState({});
+  const contextFromStorage = readProjectContext();
+  const deployment = useDeploymentState({
+    project: { name: contextFromStorage.name, previewUrl: contextFromStorage.previewUrl },
+  });
   const [details, setDetails] = useState<DeploymentRecord | null>(null);
   const [project, setProject] = useState<ProjectContext | null>(null);
   const liveRecord = deployment.latestReady.production;

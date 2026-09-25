@@ -56,10 +56,10 @@ export const initialRecipe: BuildRecipe = {
   plan: [
     { id: "shell", title: "Create application shell", agentId: "architect" },
     { id: "nav", title: "Build navigation", agentId: "ui-builder" },
-    { id: "layout", title: "Create dashboard layout", agentId: "ui-builder" },
-    { id: "kpi", title: "Add KPI cards", agentId: "ui-builder" },
-    { id: "data", title: "Prepare analytics data", agentId: "data-agent" },
-    { id: "chart", title: "Add revenue visualization", agentId: "data-agent" },
+    { id: "layout", title: "Create analytics dashboard layout", agentId: "ui-builder" },
+    { id: "kpi", title: "Add subscription KPI cards", agentId: "ui-builder" },
+    { id: "data", title: "Prepare subscription analytics data", agentId: "data-agent" },
+    { id: "chart", title: "Add revenue & churn visualization", agentId: "data-agent" },
     { id: "responsive", title: "Make layout responsive", agentId: "ui-builder" },
     { id: "preview", title: "Rebuild preview", agentId: "qa-agent" },
     { id: "checks", title: "Run interface checks", agentId: "qa-agent" },
@@ -70,14 +70,14 @@ export const initialRecipe: BuildRecipe = {
       activities: [
         {
           agentId: "architect",
-          message: "Parsing your brief into build requirements",
+          message: "Parsing your SaaS analytics brief into build requirements",
         },
       ],
     },
     {
       phase: "planning",
       activities: [
-        { agentId: "architect", message: "Shaping the implementation plan" },
+        { agentId: "architect", message: "Shaping the implementation plan around your subscription KPIs" },
       ],
     },
     {
@@ -90,27 +90,27 @@ export const initialRecipe: BuildRecipe = {
         },
         {
           agentId: "ui-builder",
-          message: "Built the app navigation sidebar",
+          message: "Built the analytics navigation sidebar",
           filePath: "components/dashboard/Sidebar.tsx",
         },
         {
           agentId: "ui-builder",
-          message: "Layed out the main dashboard page",
+          message: "Laid out the analytics dashboard page",
           filePath: "app/page.tsx",
         },
         {
           agentId: "ui-builder",
-          message: "Added the KPI cards",
+          message: "Added the subscription KPI cards",
           filePath: "components/dashboard/KpiCard.tsx",
         },
         {
           agentId: "data-agent",
-          message: "Prepared mock analytics data",
+          message: "Prepared mock SaaS metrics data",
           filePath: "lib/analytics.ts",
         },
         {
           agentId: "data-agent",
-          message: "Wired the revenue visualization",
+          message: "Wired the MRR and churn visualizations",
           filePath: "components/dashboard/RevenueChart.tsx",
         },
         {
@@ -123,7 +123,7 @@ export const initialRecipe: BuildRecipe = {
     {
       phase: "checking",
       activities: [
-        { agentId: "qa-agent", message: "Rendered the app in a preview sandbox" },
+        { agentId: "qa-agent", message: "Rendered the SaaS analytics view in a preview sandbox" },
         { agentId: "qa-agent", message: "Checked responsive behavior and spacing" },
       ],
     },
@@ -134,9 +134,9 @@ export const iterationRecipe: BuildRecipe = {
   label: "Iteration",
   plan: [
     { id: "read", title: "Interpret the change", agentId: "architect" },
-    { id: "layout", title: "Refine dashboard layout", agentId: "ui-builder" },
+    { id: "layout", title: "Refine analytics dashboard layout", agentId: "ui-builder" },
     { id: "nav", title: "Update navigation", agentId: "ui-builder" },
-    { id: "chart", title: "Refresh analytics view", agentId: "data-agent" },
+    { id: "chart", title: "Refresh metrics & charts", agentId: "data-agent" },
     { id: "style", title: "Adjust visual style", agentId: "ui-builder" },
     { id: "preview", title: "Rebuild preview", agentId: "qa-agent" },
     { id: "checks", title: "Run interface checks", agentId: "qa-agent" },
@@ -145,7 +145,7 @@ export const iterationRecipe: BuildRecipe = {
     {
       phase: "understanding",
       activities: [
-        { agentId: "architect", message: "Reading your change against the current app" },
+        { agentId: "architect", message: "Reading your change against the analytics dashboard" },
       ],
     },
     {
@@ -159,7 +159,7 @@ export const iterationRecipe: BuildRecipe = {
       activities: [
         {
           agentId: "ui-builder",
-          message: "Refined the dashboard layout",
+          message: "Refined the analytics dashboard layout",
           filePath: "app/page.tsx",
         },
         {
@@ -169,7 +169,7 @@ export const iterationRecipe: BuildRecipe = {
         },
         {
           agentId: "data-agent",
-          message: "Refreshed the revenue visualization",
+          message: "Refreshed the metrics and charts",
           filePath: "components/dashboard/RevenueChart.tsx",
         },
         {

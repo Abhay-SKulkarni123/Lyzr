@@ -8,6 +8,8 @@ import {
   deploymentRecordId,
   deploymentSimulatedNote,
   deploymentUrl,
+  seedDeploymentRecordsFor,
+  slugFromPreviewUrl,
   type DeploymentConfig,
   type DeploymentEnvironment,
   type DeploymentRecord,
@@ -24,17 +26,30 @@ export type DeployInput = {
 
 type UseDeploymentStateArgs = {
   onNotice?: (message: string) => void;
+  project?: { name: string; previewUrl: string };
 };
 
 const isBusyStatus = (status: DeploymentStatus) => status === "preparing" || status === "building" || status === "deploying";
 
-export function useDeploymentState({ onNotice }: UseDeploymentStateArgs) {
-  const [snapshot, setSnapshot] = useState(() => loadDeploymentSnapshot());
+export function useDeploymentState({ onNotice, project }: UseDeploymentStateArgs) {
+  const [snapshot, setSnapshot] = useState(() => {
+    const stored = loadDeploymentSnapshot();
+    if (stored) return stored;
+    const name = project?.name ?? "SaaS Analytics";
+    const previewUrl = project?.previewUrl ?? "https://saas-analytics.architect-demo.app";
+    return {
+      simulateFailure: false,
+      config: { ...defaultDeploymentConfig },
+      records: seedDeploymentRecordsFor(name, slugFromPreviewUrl(previewUrl)),
+      activeRecordId: "dep-1",
+    };
+  });
 
   const timersRef = useRef<number[]>([]);
   const runTokenRef = useRef(0);
   const simulateRef = useRef(snapshot.simulateFailure);
   simulateRef.current = snapshot.simulateFailure;
+  const deploymentSlug = slugFromPreviewUrl(project?.previewUrl ?? "https://saas-analytics.architect-demo.app");
 
   function clearTimers() {
     for (const timer of timersRef.current) window.clearTimeout(timer);
@@ -109,10 +124,10 @@ export function useDeploymentState({ onNotice }: UseDeploymentStateArgs) {
             status: "ready",
             endedAt: "Just now",
             duration: `${Math.floor(1 + Math.random() * 2)}m ${Math.floor(Math.random() * 40 + 10)}s`,
-            url: deploymentUrl({ environment: recordInput.environment, projectName: recordInput.projectName }),
+            url: deploymentUrl({ environment: recordInput.environment, slug: deploymentSlug }),
             logs: buildDeploymentLogs("ready"),
           });
-          const url = deploymentUrl({ environment: recordInput.environment, projectName: recordInput.projectName });
+          const url = deploymentUrl({ environment: recordInput.environment, slug: deploymentSlug });
           onNotice?.(`Deployment ready — ${recordInput.environment} · ${recordInput.branch} · ${url} (simulated).`);
         });
       });
@@ -124,7 +139,7 @@ export function useDeploymentState({ onNotice }: UseDeploymentStateArgs) {
     if (active && isBusyStatus(active.status)) return;
     const runConfig = config ?? snapshot.config;
     const run: DeployInput = {
-      projectName: input.projectName ?? "SaaS Analytics",
+      projectName: input.projectName ?? project?.name ?? "SaaS Analytics",
       environment: input.environment ?? runConfig.environment,
       branch: input.branch ?? runConfig.branch,
       commitSha: input.commitSha ?? "a81d3f2",

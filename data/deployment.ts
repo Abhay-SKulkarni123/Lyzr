@@ -85,11 +85,18 @@ export const defaultDeploymentConfig: DeploymentConfig = {
   autoDeployFromGithub: true,
 };
 
-export function deploymentUrl(record: Pick<DeploymentRecord, "environment" | "projectName">): string {
-  const slug = "saas-analytics";
+export function slugFromPreviewUrl(url: string): string {
+  try {
+    return new URL(url).hostname.split(".")[0] || "saas-analytics";
+  } catch {
+    return "saas-analytics";
+  }
+}
+
+export function deploymentUrl(record: { environment: DeploymentEnvironment; slug: string }): string {
   return record.environment === "production"
-    ? `https://${slug}.architect-demo.app`
-    : `https://preview--${slug}.architect-demo.app`;
+    ? `https://${record.slug}.architect-demo.app`
+    : `https://preview--${record.slug}.architect-demo.app`;
 }
 
 const defaultClock = () => {
@@ -135,45 +142,50 @@ function recordNumber(id: string): number {
   return match ? Number(match[0]) : 0;
 }
 
-export const seedDeploymentRecords: DeploymentRecord[] = [
-  {
-    id: "dep-2",
-    projectName: "SaaS Analytics",
-    environment: "preview",
-    branch: "feature/dashboard",
-    commitSha: "b82c91a",
-    status: "ready",
-    createdAt: "18 minutes ago",
-    endedAt: "17 minutes ago",
-    duration: "1m 06s",
-    buildCommand: "npm run build",
-    outputDirectory: ".next",
-    framework: "Next.js",
-    autoDeployFromGithub: true,
-    logs: seedLogs("ready"),
-  },
-  {
-    id: "dep-1",
-    projectName: "SaaS Analytics",
-    environment: "production",
-    branch: "main",
-    commitSha: "a81d3f2",
-    status: "ready",
-    createdAt: "2 minutes ago",
-    endedAt: "38 seconds ago",
-    duration: "1m 24s",
-    buildCommand: "npm run build",
-    outputDirectory: ".next",
-    framework: "Next.js",
-    autoDeployFromGithub: true,
-    logs: seedLogs("ready"),
-  },
-];
+export function seedDeploymentRecordsFor(name: string, slug: string): DeploymentRecord[] {
+  return [
+    {
+      id: "dep-2",
+      projectName: name,
+      environment: "preview",
+      branch: "feature/dashboard",
+      commitSha: "b82c91a",
+      status: "ready",
+      createdAt: "18 minutes ago",
+      endedAt: "17 minutes ago",
+      duration: "1m 06s",
+      buildCommand: "npm run build",
+      outputDirectory: ".next",
+      framework: "Next.js",
+      autoDeployFromGithub: true,
+      logs: seedLogs("ready"),
+    },
+    {
+      id: "dep-1",
+      projectName: name,
+      environment: "production",
+      branch: "main",
+      commitSha: "a81d3f2",
+      status: "ready",
+      createdAt: "2 minutes ago",
+      endedAt: "38 seconds ago",
+      duration: "1m 24s",
+      url: deploymentUrl({ environment: "production", slug }),
+      buildCommand: "npm run build",
+      outputDirectory: ".next",
+      framework: "Next.js",
+      autoDeployFromGithub: true,
+      logs: seedLogs("ready"),
+    },
+  ];
+}
+
+export const seedDeploymentRecords = seedDeploymentRecordsFor("SaaS Analytics", "saas-analytics");
 
 export const defaultDeploymentSnapshot: DeploymentSnapshot = {
   simulateFailure: false,
   config: { ...defaultDeploymentConfig },
-  records: seedDeploymentRecords,
+  records: seedDeploymentRecordsFor("SaaS Analytics", "saas-analytics"),
   activeRecordId: "dep-1",
 };
 

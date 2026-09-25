@@ -1133,6 +1133,61 @@ export function terminalBootFor(packageName: string): TerminalLine[] {
   ];
 }
 
+export type FilesOverviewEntry = {
+  path: string;
+  description: string;
+  type: "tsx" | "ts" | "css" | "json" | "md";
+  size: string;
+};
+
+const overviewContext: Record<ScenarioId, { noun: string; folderLabel: string }> = {
+  "saas-analytics": { noun: "analytics dashboard", folderLabel: "analytics" },
+  "customer-support": { noun: "support inbox", folderLabel: "support inbox" },
+  "project-management": { noun: "project board", folderLabel: "project board" },
+  "personal-finance": { noun: "finance overview", folderLabel: "finance view" },
+};
+
+function humanizeName(name: string): string {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[._-]+/g, " ")
+    .trim();
+}
+
+export function filesOverviewFor(scenario: BuildScenario): FilesOverviewEntry[] {
+  const { noun, folderLabel } = overviewContext[scenario.id];
+  const sizes: Record<FilesOverviewEntry["type"], string> = {
+    tsx: "2.3 KB",
+    ts: "1.6 KB",
+    css: "3.1 KB",
+    json: "1.0 KB",
+    md: "0.7 KB",
+  };
+  const paths = Array.from(new Set(Object.keys(scenario.codeSamples)));
+  return paths.map((path) => {
+    const type: FilesOverviewEntry["type"] = path.endsWith(".json")
+      ? "json"
+      : path.endsWith(".css")
+        ? "css"
+        : path.endsWith(".md")
+          ? "md"
+          : path.endsWith(".ts")
+            ? "ts"
+            : "tsx";
+    let description: string;
+    if (path === "app/page.tsx") description = `Main ${noun} page`;
+    else if (path === "app/layout.tsx") description = "Application shell and metadata";
+    else if (path === "app/globals.css") description = "Global styles and theme";
+    else if (path === "package.json") description = "Project scripts and dependencies";
+    else if (path === "README.md") description = "Getting started guide";
+    else if (path.startsWith("lib/")) description = `Data and types for the ${noun}`;
+    else if (path.startsWith("components/"))
+      description = `${humanizeName(path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? path)} component for the ${folderLabel}`;
+    else description = humanizeName(path.split("/").pop()?.replace(/\.[^.]+$/, "") ?? path);
+    return { path, description, type, size: sizes[type] };
+  });
+}
+
 export const PROJECT_CONTEXT_KEY = "architect-demo-project";
 
 export type ProjectContext = {

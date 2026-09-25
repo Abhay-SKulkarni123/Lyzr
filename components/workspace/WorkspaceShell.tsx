@@ -32,6 +32,7 @@ import {
 import type { GitChange, GitCommit } from "@/data/developer";
 import {
   changeSummary,
+  filesOverviewFor,
   historyFor,
   initialChangesFor,
   resolveScenario,
@@ -86,14 +87,25 @@ export function WorkspaceShell({
   latestPromptRef.current = latestPrompt;
   const noticeTimer = useRef<number | null>(null);
   const autoRunHandled = useRef(false);
-  const github = useGithubState({ onNotice: showNotice });
-  const deployment = useDeploymentState({ onNotice: showNotice });
-
   const scenario = useMemo(
     () => resolveScenario(promptStack[0] ?? initialPrompt),
     [promptStack, initialPrompt]
   );
+  const github = useGithubState({ onNotice: showNotice });
+  const deployment = useDeploymentState({
+    onNotice: showNotice,
+    project: { name: scenario.name, previewUrl: scenario.previewUrl },
+  });
   const appName = projectName ?? scenario.name;
+
+  const filesOverview = useMemo(
+    () => ({
+      name: scenario.packageName,
+      description: `A sample project structure for the generated ${scenario.name}.`,
+      entries: filesOverviewFor(scenario),
+    }),
+    [scenario]
+  );
 
   useEffect(() => {
     writeProjectContext({
@@ -350,7 +362,7 @@ export function WorkspaceShell({
               )}
               {view === "environment" && <EnvironmentPanel onNotice={showNotice} />}
               {view === "settings" && <DeveloperSettingsPanel />}
-              {view === "files" && <FilesOverview modifiedFiles={modifiedFiles} onOpenFile={openFileByPath} />}
+              {view === "files" && <FilesOverview modifiedFiles={modifiedFiles} onOpenFile={openFileByPath} project={filesOverview} />}
             </div>
           )}
         </section>

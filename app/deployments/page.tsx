@@ -13,11 +13,14 @@ import { DeploymentStatus } from "@/components/deployment/DeploymentStatus";
 import { useDeploymentState } from "@/components/deployment/useDeploymentState";
 import { useGithubState } from "@/components/github/useGithubState";
 import { deploymentSimulatedNote, type DeploymentRecord } from "@/data/deployment";
+import { readProjectContext } from "@/data/scenarios";
 
 export default function DeploymentsPage() {
   const router = useRouter();
+  const context = readProjectContext();
   const github = useGithubState({});
-  const deployment = useDeploymentState({});
+  const deployment = useDeploymentState({ project: { name: context.name, previewUrl: context.previewUrl } });
+  const projectName = context.name;
   const [details, setDetails] = useState<DeploymentRecord | null>(null);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
   const [notice, setNotice] = useState("");
@@ -224,7 +227,7 @@ export default function DeploymentsPage() {
           onOpenLiveApp={() => router.push("/deployments/live")}
           onOpenPreview={() => router.push("/workspace")}
           onViewDeployments={() => setDeployDialogOpen(false)}
-          projectName="SaaS Analytics"
+          projectName={projectName}
         />
       )}
     </div>

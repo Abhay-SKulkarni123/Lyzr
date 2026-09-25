@@ -2,15 +2,15 @@ import { defaultDeploymentSnapshot, type DeploymentSnapshot } from "@/data/deplo
 
 const STORAGE_KEY = "architect-demo-deployment";
 
-export function loadDeploymentSnapshot(): DeploymentSnapshot {
-  if (typeof window === "undefined") return withNormalizedActive(defaultDeploymentSnapshot);
+export function loadDeploymentSnapshot(): DeploymentSnapshot | null {
+  if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return withNormalizedActive(defaultDeploymentSnapshot);
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<DeploymentSnapshot>;
     return withNormalizedActive({ ...defaultDeploymentSnapshot, ...parsed });
   } catch {
-    return withNormalizedActive(defaultDeploymentSnapshot);
+    return null;
   }
 }
 

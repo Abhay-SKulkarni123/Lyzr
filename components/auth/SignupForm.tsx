@@ -43,8 +43,7 @@ export function SignupForm() {
     router.replace("/dashboard");
   }
 
-  async function handleSocial(_provider: SocialProvider) {
-    await new Promise((resolve) => window.setTimeout(resolve, 900));
+  function handleSocial(_provider: SocialProvider) {
     signInMock({ name: DEMO_USER.name, email: DEMO_USER.email });
     router.replace("/dashboard");
   }

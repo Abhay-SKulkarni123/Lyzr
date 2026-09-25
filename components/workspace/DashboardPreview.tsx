@@ -14,22 +14,22 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { title: "Total revenue", value: "$48,294", delta: "+12.8%", positive: true, color: "bg-indigo-500" },
-  { title: "Active customers", value: "2,847", delta: "+8.2%", positive: true, color: "bg-sky-500" },
-  { title: "Conversion rate", value: "3.64%", delta: "−0.4%", positive: false, color: "bg-amber-500" },
-  { title: "Avg. order value", value: "$169.50", delta: "+4.6%", positive: true, color: "bg-emerald-500" },
+  { title: "MRR", value: "$84,320", delta: "+6.2%", positive: true, color: "bg-indigo-500" },
+  { title: "Active users", value: "12,948", delta: "+4.8%", positive: true, color: "bg-sky-500" },
+  { title: "Churn rate", value: "1.9%", delta: "−0.3%", positive: false, color: "bg-amber-500" },
+  { title: "ARR", value: "$1.01M", delta: "+6.2%", positive: true, color: "bg-emerald-500" },
 ];
 
 const transactions = [
-  { initials: "SC", name: "Sophie Chen", email: "sophie.chen@acme.co", amount: "$1,240.00", state: "Paid", color: "bg-violet-100 text-violet-700" },
-  { initials: "JM", name: "James Miller", email: "james.m@northstar.io", amount: "$890.00", state: "Paid", color: "bg-sky-100 text-sky-700" },
-  { initials: "AP", name: "Amara Patel", email: "amara.patel@studio.co", amount: "$2,150.00", state: "Pending", color: "bg-orange-100 text-orange-700" },
+  { initials: "SC", name: "Sophie Chen", email: "sophie.chen@acme.co", amount: "$49/mo", state: "Starter", color: "bg-violet-100 text-violet-700" },
+  { initials: "JM", name: "James Miller", email: "james.m@northstar.io", amount: "$99/mo", state: "Pro", color: "bg-sky-100 text-sky-700" },
+  { initials: "AP", name: "Amara Patel", email: "amara.patel@studio.co", amount: "$49/mo", state: "Starter", color: "bg-orange-100 text-orange-700" },
 ];
 
 function DashboardSidebar() {
   const items = [
     { icon: Home, label: "Overview", active: true },
-    { icon: CreditCard, label: "Transactions", active: false },
+    { icon: CreditCard, label: "Subscriptions", active: false },
     { icon: Users, label: "Customers", active: false },
     { icon: CircleHelp, label: "Reports", active: false },
   ];
@@ -45,7 +45,7 @@ function DashboardSidebar() {
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-100 text-[10px] font-semibold text-indigo-700">NS</span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[10px] font-semibold text-slate-800">Northstar Inc.</p>
-          <p className="text-[9px] text-slate-500">Free plan</p>
+          <p className="text-[9px] text-slate-500">Scale plan</p>
         </div>
         <ChevronDown className="h-3 w-3 text-slate-400" />
       </div>
@@ -119,7 +119,7 @@ export function DashboardPreview() {
               <div>
                 <p className="text-[8px] font-medium uppercase tracking-[0.12em] text-slate-400">Friday, September 25, 2026</p>
                 <h1 className="mt-1 text-[17px] font-semibold tracking-tight text-slate-900 sm:text-[20px]">Good morning, Jordan <span aria-hidden="true">👋</span></h1>
-                <p className="mt-1 text-[10px] text-slate-500">Here&apos;s what&apos;s happening with your store today.</p>
+                <p className="mt-1 text-[10px] text-slate-500">Here&apos;s what&apos;s happening with your subscription revenue today.</p>
               </div>
               <div className="hidden items-center gap-2 sm:flex">
                 <button className="flex h-7 items-center gap-1.5 rounded-md border border-slate-200 px-2 text-[9px] font-medium text-slate-600"><ChevronDown className="h-3 w-3" />Last 30 days</button>
@@ -147,19 +147,19 @@ export function DashboardPreview() {
             <section className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(190px,1fr)]">
               <article className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
                 <div className="flex items-start justify-between">
-                  <div><h2 className="text-[11px] font-semibold text-slate-800">Revenue over time</h2><p className="mt-1 text-[8px] text-slate-400">Monthly revenue performance</p></div>
+                  <div><h2 className="text-[11px] font-semibold text-slate-800">MRR over time</h2><p className="mt-1 text-[8px] text-slate-400">Monthly recurring revenue performance</p></div>
                   <button aria-label="Search analytics" className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-50"><Search className="h-3.5 w-3.5" /></button>
                 </div>
                 <RevenueChart />
               </article>
               <article className="rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-                <div className="flex items-start justify-between"><div><h2 className="text-[11px] font-semibold text-slate-800">Traffic sources</h2><p className="mt-1 text-[8px] text-slate-400">Visitors by channel</p></div><Bell className="h-3.5 w-3.5 text-slate-400" /></div>
+                <div className="flex items-start justify-between"><div><h2 className="text-[11px] font-semibold text-slate-800">Plan mix</h2><p className="mt-1 text-[8px] text-slate-400">MRR by subscription plan</p></div><Bell className="h-3.5 w-3.5 text-slate-400" /></div>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="relative flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full" style={{ background: "conic-gradient(#6366f1 0 42%, #38bdf8 42% 70%, #34d399 70% 88%, #e2e8f0 88% 100%)" }}>
-                    <div className="flex h-[54px] w-[54px] flex-col items-center justify-center rounded-full bg-white"><span className="text-[13px] font-semibold text-slate-800">8.4k</span><span className="text-[7px] text-slate-400">visitors</span></div>
+                    <div className="flex h-[54px] w-[54px] flex-col items-center justify-center rounded-full bg-white"><span className="text-[13px] font-semibold text-slate-800">$84k</span><span className="text-[7px] text-slate-400">MRR</span></div>
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    {[["Direct", "42%", "bg-indigo-500"], ["Social", "28%", "bg-sky-400"], ["Search", "18%", "bg-emerald-400"], ["Other", "12%", "bg-slate-300"]].map(([name, percent, color]) => (
+                    {[["Starter", "42%", "bg-indigo-500"], ["Pro", "28%", "bg-sky-400"], ["Scale", "18%", "bg-emerald-400"], ["Enterprise", "12%", "bg-slate-300"]].map(([name, percent, color]) => (
                       <div key={name} className="flex items-center gap-1.5 text-[8px]"><span className={`h-1.5 w-1.5 rounded-full ${color}`} /><span className="min-w-0 flex-1 truncate text-slate-500">{name}</span><span className="font-medium text-slate-700">{percent}</span></div>
                     ))}
                   </div>
@@ -168,7 +168,7 @@ export function DashboardPreview() {
             </section>
 
             <section className="mt-3 rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-              <div className="mb-3 flex items-center justify-between"><div><h2 className="text-[11px] font-semibold text-slate-800">Recent transactions</h2><p className="mt-1 text-[8px] text-slate-400">Your latest customer activity</p></div><button className="text-[8px] font-medium text-indigo-600">View all</button></div>
+              <div className="mb-3 flex items-center justify-between"><div><h2 className="text-[11px] font-semibold text-slate-800">Recent signups</h2><p className="mt-1 text-[8px] text-slate-400">Latest customers to subscribe</p></div><button className="text-[8px] font-medium text-indigo-600">View all</button></div>
               <div className="space-y-2.5">
                 {transactions.map((transaction) => (
                   <div key={transaction.email} className="flex items-center gap-2 border-t border-slate-100 pt-2.5 first:border-0 first:pt-0">

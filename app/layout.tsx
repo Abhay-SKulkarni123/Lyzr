@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SessionScopeSync } from "@/components/auth/SessionScopeSync";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <SessionScopeSync>{children}</SessionScopeSync>
+      </body>
     </html>
   );
 }

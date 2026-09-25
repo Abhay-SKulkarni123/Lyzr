@@ -2,7 +2,6 @@ import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { projects } from "@/data/projects";
 
 const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
-const defaultProject = "SaaS Analytics";
 
 export default function WorkspacePage({
   searchParams,
@@ -12,7 +11,7 @@ export default function WorkspacePage({
   const initialPrompt = searchParams.prompt || defaultPrompt;
   const autoRun = Boolean(searchParams.new && searchParams.prompt);
 
-  let projectName = defaultProject;
+  let projectName: string | undefined;
   if (searchParams.project) {
     const matched = projects.find((project) => project.id === searchParams.project);
     projectName = matched ? matched.name : searchParams.project;
