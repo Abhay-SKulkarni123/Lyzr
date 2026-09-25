@@ -11,7 +11,6 @@ import { useGithubState } from "@/components/github/useGithubState";
 import { ActivityPanel, ActivitySummary } from "./ActivityPanel";
 import { BuildSessionPanel } from "./BuildSessionPanel";
 import { CodeEditor } from "./CodeEditor";
-import { DashboardPreview } from "./DashboardPreview";
 import { DeveloperSettingsPanel } from "./DeveloperSettingsPanel";
 import { EnvironmentPanel } from "./EnvironmentPanel";
 import { FileExplorer } from "./FileExplorer";
@@ -23,17 +22,23 @@ import { TerminalPanel } from "./TerminalPanel";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceToolbar } from "./WorkspaceToolbar";
 import { isDeveloperView, type BuildStatus, type WorkspaceView } from "./types";
+import { ScenarioPreview } from "./ScenarioPreview";
 import {
   getActivityPhase,
   getRecipeActivities,
   getRecipeFiles,
-  initialRecipe,
-  iterationRecipe,
   labelFromPrompt,
-  seedVersions,
-  type BuildVersion,
 } from "@/data/builds";
-import { gitChanges, gitHistory, type GitChange, type GitCommit } from "@/data/developer";
+import type { GitChange, GitCommit } from "@/data/developer";
+import {
+  changeSummary,
+  historyFor,
+  initialChangesFor,
+  resolveScenario,
+  seedVersionsFor,
+  writeProjectContext,
+  type VersionSummary,
+} from "@/data/scenarios";
 
 const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
 
@@ -47,7 +52,7 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({
   initialPrompt = defaultPrompt,
-  projectName = "SaaS Analytics",
+  projectName,
   autoRun = false,
 }: WorkspaceShellProps) {
   const [view, setView] = useState<WorkspaceView>("preview");
@@ -59,12 +64,18 @@ export function WorkspaceShell({
   const [buildIndex, setBuildIndex] = useState(0);
   const [latestPrompt, setLatestPrompt] = useState(initialPrompt);
   const [promptStack, setPromptStack] = useState<string[]>([]);
-  const [versions, setVersions] = useState<BuildVersion[]>(seedVersions);
+  const [versions, setVersions] = useState<VersionSummary[]>(() =>
+    seedVersionsFor(resolveScenario(initialPrompt))
+  );
   const [notice, setNotice] = useState("");
   const [shouldFailNext, setShouldFailNext] = useState(false);
   const [failedPrompt, setFailedPrompt] = useState("");
-  const [changes, setChangesState] = useState<GitChange[]>(gitChanges);
-  const [commits, setCommitsState] = useState<GitCommit[]>(gitHistory);
+  const [changes, setChangesState] = useState<GitChange[]>(() =>
+    initialChangesFor(resolveScenario(initialPrompt))
+  );
+  const [commits, setCommitsState] = useState<GitCommit[]>(() =>
+    historyFor(resolveScenario(initialPrompt))
+  );
   const [githubModalOpen, setGithubModalOpen] = useState(false);
   const [prDialog, setPrDialog] = useState<{ open: boolean; compare: string }>({ open: false, compare: "feature/analytics" });
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
@@ -78,7 +89,22 @@ export function WorkspaceShell({
   const github = useGithubState({ onNotice: showNotice });
   const deployment = useDeploymentState({ onNotice: showNotice });
 
-  const recipe = buildIndex === 0 ? initialRecipe : iterationRecipe;
+  const scenario = useMemo(
+    () => resolveScenario(promptStack[0] ?? initialPrompt),
+    [promptStack, initialPrompt]
+  );
+  const appName = projectName ?? scenario.name;
+
+  useEffect(() => {
+    writeProjectContext({
+      scenarioId: scenario.id,
+      name: scenario.name,
+      packageName: scenario.packageName,
+      previewUrl: scenario.previewUrl,
+    });
+  }, [scenario]);
+
+  const recipe = buildIndex === 0 ? scenario.initialRecipe : scenario.iterationRecipe;
   const flat = useMemo(() => getRecipeActivities(recipe), [recipe]);
   const files = useMemo(() => getRecipeFiles(recipe), [recipe]);
 
@@ -141,7 +167,16 @@ export function WorkspaceShell({
         setActiveStep(flat.length);
         setBuildStatus("complete");
         setBuildIndex((index) => index + 1);
-        setVersions((prev) => [...prev, { version: `v${prev.length + 1}`, label: labelFromPrompt(latestPromptRef.current) }]);
+        const prompt = latestPromptRef.current;
+        setVersions((prev) => [
+          ...prev,
+          {
+            version: `v${prev.length + 1}`,
+            label: labelFromPrompt(prompt),
+            summary: changeSummary(prompt),
+            prompt,
+          },
+        ]);
         setChangesState((prev) => {
           const paths = Array.from(new Set(flat.map((activity) => activity.filePath).filter((path): path is string => Boolean(path))));
           const missing = paths.filter((path) => !prev.some((change) => change.file === path));
@@ -242,7 +277,7 @@ export function WorkspaceShell({
         onNotice={showNotice}
         onOpenDeployment={() => setDeployDialogOpen(true)}
         onOpenGithub={() => setGithubModalOpen(true)}
-        projectName={projectName}
+        projectName={appName}
         status={buildStatus}
       />
       <WorkspaceToolbar activeView={view} developerMode={developerMode} onChange={setView} status={buildStatus} />
@@ -260,12 +295,17 @@ export function WorkspaceShell({
       />
 
       <div className="relative flex min-h-0 flex-1">
-        <FileExplorer onSelect={openFileByPath} modifiedFiles={modifiedFiles} selectedFile={activePath} />
+        <FileExplorer
+          modifiedFiles={modifiedFiles}
+          onSelect={openFileByPath}
+          project={{ name: scenario.name, tree: scenario.fileTree }}
+          selectedFile={activePath}
+        />
         <section className="flex min-w-0 flex-1 flex-col bg-[#0b0f19]" aria-label={`${view} workspace`}>
           {view === "preview" && (
             <div className="relative flex min-h-0 flex-1 items-stretch justify-center overflow-hidden p-2 sm:p-3 lg:p-4">
               <PreviewStatus live={deployment.live} status={buildStatus} />
-              <DashboardPreview />
+              <ScenarioPreview scenarioId={scenario.id} />
             </div>
           )}
           {view === "code" && (
@@ -275,13 +315,14 @@ export function WorkspaceShell({
                 modifiedFiles={modifiedFiles}
                 onClose={closeTab}
                 onSelect={selectActivePath}
+                samples={scenario.codeSamples}
                 tabs={tabs}
               />
             </div>
           )}
           {view === "terminal" && (
             <div className="workspace-scrollbar min-h-0 flex-1 overflow-auto p-2 sm:p-3 lg:p-4">
-              <TerminalPanel />
+              <TerminalPanel packageName={scenario.packageName} />
             </div>
           )}
           {(view === "git" || view === "deployments" || view === "environment" || view === "settings" || view === "files") && (
@@ -304,7 +345,7 @@ export function WorkspaceShell({
                   commitSha={headCommitSha}
                   deployment={deployment}
                   onOpenLiveApp={openLiveApp}
-                  projectName={projectName}
+                  projectName={appName}
                 />
               )}
               {view === "environment" && <EnvironmentPanel onNotice={showNotice} />}
@@ -344,7 +385,7 @@ export function WorkspaceShell({
               setView("preview");
             }}
             onViewDeployments={openDeployments}
-            projectName={projectName}
+            projectName={appName}
           />
         )}
         {prDialog.open && (

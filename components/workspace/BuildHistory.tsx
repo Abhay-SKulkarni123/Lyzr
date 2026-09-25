@@ -1,9 +1,9 @@
 import { Check, History, Layers, MessageSquareText } from "lucide-react";
-import type { BuildVersion } from "@/data/builds";
+import type { VersionSummary } from "@/data/scenarios";
 
 type BuildHistoryProps = {
   promptStack: string[];
-  versions: BuildVersion[];
+  versions: VersionSummary[];
 };
 
 export function BuildHistory({ promptStack, versions }: BuildHistoryProps) {
@@ -42,21 +42,24 @@ export function BuildHistory({ promptStack, versions }: BuildHistoryProps) {
           {versions.map((build, index) => {
             const isLatest = index === versions.length - 1;
             return (
-              <li key={build.version} className="flex items-center gap-2.5 rounded-md px-2 py-1.5">
+              <li key={`${build.version}-${build.summary}`} className="flex items-start gap-2 rounded-md px-1.5 py-1.5">
                 <span
-                  className={`flex h-5 w-8 shrink-0 items-center justify-center rounded font-mono text-[8px] font-semibold ${
+                  className={`mt-[1px] flex h-5 shrink-0 items-center rounded px-1.5 font-mono text-[8px] font-semibold ${
                     isLatest ? "bg-coral/10 text-coral" : "bg-white/[0.04] text-slate-500"
                   }`}
                 >
-                  {build.version}
+                  Build {index + 1}
                 </span>
-                <span className={`min-w-0 flex-1 truncate text-[10px] leading-4 ${isLatest ? "text-slate-300" : "text-slate-500"}`}>
-                  {build.label}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate text-[10px] leading-4 ${isLatest ? "text-slate-300" : "text-slate-500"}`}>
+                    {build.label}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-[8px] leading-[13px] text-slate-600">{build.summary}</p>
+                </div>
                 {isLatest ? (
-                  <Check aria-hidden="true" className="h-3 w-3 shrink-0 text-emerald-300" />
+                  <Check aria-hidden="true" className="mt-0.5 h-3 w-3 shrink-0 text-emerald-300" />
                 ) : (
-                  <Layers aria-hidden="true" className="h-3 w-3 shrink-0 text-slate-700" />
+                  <Layers aria-hidden="true" className="mt-0.5 h-3 w-3 shrink-0 text-slate-700" />
                 )}
               </li>
             );

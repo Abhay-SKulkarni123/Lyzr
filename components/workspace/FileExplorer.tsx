@@ -2,7 +2,23 @@ import { ChevronDown, ChevronRight, FileCode2, FileJson2, FileText, Folder, Fold
 import { useMemo, useState } from "react";
 import { developerFileTree, filePaths, type FileTreeNode } from "@/data/developer";
 
-const defaultExpanded = new Set(["app", "components", "components/dashboard", "lib"]);
+type ProjectFiles = {
+  name: string;
+  tree: FileTreeNode[];
+};
+
+function defaultExpandedFor(tree: FileTreeNode[]): Set<string> {
+  const expanded = new Set<string>();
+  tree.forEach((node) => {
+    if (node.kind === "folder") {
+      expanded.add(node.path);
+      node.children?.forEach((child) => {
+        if (child.kind === "folder") expanded.add(child.path);
+      });
+    }
+  });
+  return expanded;
+}
 
 function FileTypeIcon({ node }: { node: FileTreeNode }) {
   if (node.path.endsWith(".json")) return <FileJson2 aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-300" />;
@@ -85,13 +101,21 @@ type FileExplorerProps = {
   selectedFile: string | null;
   onSelect: (path: string) => void;
   modifiedFiles?: ReadonlySet<string>;
+  project?: ProjectFiles;
 };
 
-export function FileExplorer({ selectedFile, onSelect, modifiedFiles }: FileExplorerProps) {
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+export function FileExplorer({ selectedFile, onSelect, modifiedFiles, project }: FileExplorerProps) {
+  const projectFiles = project ?? { name: "northstar-analytics", tree: developerFileTree };
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    defaultExpandedFor(projectFiles.tree).forEach((path) => {
+      initial[path] = false;
+    });
+    return initial;
+  });
   const [query, setQuery] = useState("");
 
-  const allFiles = useMemo(() => filePaths(developerFileTree), []);
+  const allFiles = useMemo(() => filePaths(projectFiles.tree), [projectFiles.tree]);
   const matches = useMemo(
     () => (query.trim() ? allFiles.filter((path) => path.toLowerCase().includes(query.trim().toLowerCase())) : null),
     [allFiles, query]
@@ -121,10 +145,10 @@ export function FileExplorer({ selectedFile, onSelect, modifiedFiles }: FileExpl
         </label>
         <div className="mb-1 flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium text-slate-300">
           <FolderOpen aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
-          northstar-analytics
+          {projectFiles.name}
         </div>
         {matches === null ? (
-          developerFileTree.map((node) => (
+          projectFiles.tree.map((node) => (
             <TreeRow
               key={node.path}
               depth={0}

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Hexagon, Plus, Terminal, Users, GitFork, Settings, Code2 } from "lucide-react";
-import { getMockSession } from "@/lib/auth";
+import { ArrowRight, Code2, GitFork, Hexagon, Plus, Settings, Terminal, Users } from "lucide-react";
+import { getMockSession, signInMock, DEMO_USER } from "@/lib/auth";
+import { SocialProviders, type SocialProvider } from "@/components/auth/SocialProviders";
 
 const features = [
   {
@@ -50,7 +52,31 @@ const features = [
   },
 ];
 
+const examplePrompts = [
+  {
+    name: "SaaS Analytics",
+    description: "Subscription analytics for a SaaS product",
+    prompt: "SaaS analytics subscription dashboard",
+  },
+  {
+    name: "Customer Support",
+    description: "Tickets, response times, and satisfaction",
+    prompt: "Customer support dashboard for SaaS",
+  },
+  {
+    name: "Project Management",
+    description: "Tasks, sprints, and workload for a small team",
+    prompt: "Project management app for small engineering teams",
+  },
+  {
+    name: "Personal Finance",
+    description: "Budgets, expenses, and net worth at a glance",
+    prompt: "Personal finance tracker",
+  },
+];
+
 export default function HomePage() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
 
@@ -58,6 +84,12 @@ export default function HomePage() {
     setMounted(true);
     setSignedIn(getMockSession().signedIn);
   }, []);
+
+  async function handleSocial(_provider: SocialProvider) {
+    await new Promise((resolve) => window.setTimeout(resolve, 800));
+    signInMock({ name: DEMO_USER.name, email: DEMO_USER.email });
+    router.push("/workspace");
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
@@ -97,14 +129,72 @@ export default function HomePage() {
         </span>
       </nav>
 
-      <div className="mb-16 text-center">
-        <h1 className="mb-6 text-5xl font-bold tracking-tight text-white md:text-6xl">
-          Architect 2.0
+      <section className="mb-16 text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-coral/30 bg-coral/10 px-3 py-1 text-[11px] font-medium tracking-wide text-coral">
+          AI-native app builder · interactive prototype
+        </span>
+        <h1 className="mx-auto mt-6 max-w-3xl text-5xl font-bold tracking-tight text-white md:text-6xl">
+          Build anything. Just describe it.
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-slate-400 md:text-xl">
-          One platform for everyone. Simple by default. Powerful when needed.
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-400">
+          Architect turns plain language into a working app — plan, code, preview, and deploy from one
+          workspace.
         </p>
-      </div>
+        {mounted && signedIn ? (
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href="/workspace"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-coral px-7 text-sm font-semibold text-white transition hover:bg-[#ff795c]"
+            >
+              Continue building <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/15 px-7 text-sm font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
+            >
+              Open dashboard
+            </Link>
+          </div>
+        ) : (
+          <div className="mx-auto mt-8 max-w-sm space-y-4">
+            <SocialProviders onProvider={handleSocial} />
+            <p className="text-xs text-slate-500">
+              or{" "}
+              <Link className="font-medium text-slate-300 underline underline-offset-2 transition hover:text-white" href="/login">
+                log in with email
+              </Link>
+            </p>
+          </div>
+        )}
+        <p className="mt-5 text-[11px] text-slate-600">
+          Prototype — Google/GitHub sign-in is simulated and never leaves your browser.
+        </p>
+      </section>
+
+      <section className="mb-16">
+        <p className="mb-4 text-center text-xs uppercase tracking-[0.16em] text-slate-500">
+          Try it — pick a prompt
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {examplePrompts.map((item) => (
+            <Link
+              key={item.name}
+              href={`/workspace?prompt=${encodeURIComponent(item.prompt)}&new=1`}
+              className="group flex flex-col rounded-xl border border-white/[0.08] bg-[#0c1019] p-5 transition hover:border-coral/40 hover:bg-[#111621]"
+            >
+              <span className="text-sm font-semibold text-white">{item.name}</span>
+              <span className="mt-1 text-xs text-slate-500">{item.description}</span>
+              <span className="mt-4 line-clamp-2 text-[13px] leading-snug text-slate-400">
+                &ldquo;{item.prompt}&rdquo;
+              </span>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-coral">
+                Open in workspace
+                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => {
@@ -118,35 +208,45 @@ export default function HomePage() {
               <div className="mb-5 inline-flex rounded-lg bg-sand p-3 text-coral">
                 <Icon className="h-7 w-7" />
               </div>
-              <h2 className="mb-3 text-xl font-semibold text-ink">
-                {feature.name}
-              </h2>
+              <h2 className="mb-3 text-xl font-semibold text-ink">{feature.name}</h2>
               <p className="text-slate-600">{feature.description}</p>
             </Link>
           );
         })}
       </div>
 
-      <div className="mt-16 rounded-xl bg-gradient-to-r from-ink to-slate-900 p-12 text-center text-white">
-        <h2 className="mb-6 text-3xl font-bold">Ready to build?</h2>
-        <p className="mb-8 text-lg text-slate-300">
-          Choose your path: start with a natural language prompt or explore developer controls
+      <section className="mt-16 rounded-xl border border-white/[0.08] bg-[#0c1019] p-12 text-center">
+        <h2 className="text-3xl font-bold text-white">Ready to build?</h2>
+        <p className="mt-3 mb-8 text-lg text-slate-400">
+          Skip the setup — pick a prompt above or start from a fresh idea.
         </p>
-        <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
-          <Link
-            href="/login?next=/workspace"
-            className="rounded-lg bg-coral px-8 py-4 font-medium text-white transition-all duration-200 hover:bg-coral/90 hover:shadow-lg"
-          >
-            Start Building (Prompt)
-          </Link>
-          <Link
-            href="/login?next=/workspace"
-            className="rounded-lg border border-white/20 bg-white/10 px-8 py-4 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20"
-          >
-            Explore Developer Mode
-          </Link>
-        </div>
-      </div>
+        {mounted && signedIn ? (
+          <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
+            <Link
+              href="/workspace?new=1"
+              className="rounded-lg bg-coral px-8 py-4 font-medium text-white transition-all duration-200 hover:bg-[#ff795c] hover:shadow-lg"
+            >
+              Start Building (Prompt)
+            </Link>
+            <Link
+              href="/deployments"
+              className="rounded-lg border border-white/20 px-8 py-4 font-medium text-white transition-all duration-200 hover:bg-white/10"
+            >
+              Explore Developer Mode
+            </Link>
+          </div>
+        ) : (
+          <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5">
+            <SocialProviders onProvider={handleSocial} />
+            <Link
+              href="/login?next=/workspace"
+              className="text-xs text-slate-500 underline underline-offset-2 transition hover:text-white"
+            >
+              log in with email
+            </Link>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

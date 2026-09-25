@@ -14,17 +14,21 @@ type CodeEditorProps = {
   tabs: string[];
   activePath: string | null;
   modifiedFiles?: ReadonlySet<string>;
+  samples?: Record<string, string[]>;
   onSelect: (path: string) => void;
   onClose: (path: string) => void;
 };
 
-export function CodeEditor({ tabs, activePath, modifiedFiles, onSelect, onClose }: CodeEditorProps) {
+export function CodeEditor({ tabs, activePath, modifiedFiles, samples, onSelect, onClose }: CodeEditorProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<number | null>(null);
 
-  const lines = useMemo(() => (activePath ? fileLinesFor(activePath) : []), [activePath]);
+  const lines = useMemo(
+    () => (activePath ? (samples?.[activePath] ?? fileLinesFor(activePath)) : []),
+    [activePath, samples]
+  );
   const filtered = useMemo(() => {
     const source = lines.map((line, lineIndex) => ({ line, lineIndex }));
     if (!query.trim()) return source;

@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowRight, GitBranch, LoaderCircle } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { signInMock } from "@/lib/auth";
+import { signInMock, DEMO_USER } from "@/lib/auth";
+import { SocialProviders, type SocialProvider } from "./SocialProviders";
 
 export function SignupForm() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "github">("idle");
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,13 +43,10 @@ export function SignupForm() {
     router.replace("/dashboard");
   }
 
-  function handleGitHub() {
-    setError(null);
-    setStatus("github");
-    window.setTimeout(() => {
-      signInMock({ name: "Abhay Sharma", email: "abhay@users.noreply.github.com" });
-      router.replace("/dashboard");
-    }, 900);
+  async function handleSocial(_provider: SocialProvider) {
+    await new Promise((resolve) => window.setTimeout(resolve, 900));
+    signInMock({ name: DEMO_USER.name, email: DEMO_USER.email });
+    router.replace("/dashboard");
   }
 
   const fieldClass = (invalid = false) =>
@@ -154,24 +152,7 @@ export function SignupForm() {
         <span className="h-px flex-1 bg-white/[0.08]" />
       </div>
 
-      <button
-        type="button"
-        disabled={status !== "idle"}
-        onClick={handleGitHub}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/[0.1] bg-[#0b0f19] text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/[0.03] disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {status === "github" ? (
-          <>
-            <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-            Connecting…
-          </>
-        ) : (
-          <>
-            <GitBranch aria-hidden="true" className="h-4 w-4" />
-            Sign up with GitHub
-          </>
-        )}
-      </button>
+      <SocialProviders disabled={status !== "idle"} onProvider={handleSocial} />
 
       <p className="mt-5 text-center text-xs text-slate-500">
         Already have an account?{" "}

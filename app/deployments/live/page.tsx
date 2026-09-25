@@ -2,17 +2,25 @@
 
 import { ArrowLeft, Globe, Rocket } from "lucide-react";
 import Link from "next/link";
-import { DashboardPreview } from "@/components/workspace/DashboardPreview";
+import { useEffect, useState } from "react";
+import { ScenarioPreview } from "@/components/workspace/ScenarioPreview";
 import { useDeploymentState } from "@/components/deployment/useDeploymentState";
 import { DeploymentStatus } from "@/components/deployment/DeploymentStatus";
 import { DeploymentDetailsDialog } from "@/components/deployment/DeploymentDetailsDialog";
-import { useState } from "react";
 import type { DeploymentRecord } from "@/data/deployment";
+import { readProjectContext, type ProjectContext } from "@/data/scenarios";
 
 export default function LiveDeploymentPage() {
   const deployment = useDeploymentState({});
   const [details, setDetails] = useState<DeploymentRecord | null>(null);
+  const [project, setProject] = useState<ProjectContext | null>(null);
   const liveRecord = deployment.latestReady.production;
+
+  useEffect(() => {
+    setProject(readProjectContext());
+  }, []);
+
+  const context = project ?? { scenarioId: "saas-analytics", name: "SaaS Analytics", packageName: "northstar-analytics", previewUrl: "https://saas-analytics.architect-demo.app" };
 
   return (
     <div className="flex h-dvh min-w-[320px] flex-col bg-[#0b0f19] text-slate-200">
@@ -68,11 +76,11 @@ export default function LiveDeploymentPage() {
       )}
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden p-2 sm:p-3">
-        <DashboardPreview />
+        <ScenarioPreview scenarioId={context.scenarioId} />
       </div>
 
       <p className="flex items-center justify-center gap-1.5 border-t border-white/[0.06] px-4 py-2 text-center text-[8px] text-slate-600">
-        {liveRecord?.url ?? "https://saas-analytics.architect-demo.app"} · Simulated live URL — this address does not host a real application. The page renders the same preview shared with the workspace.
+        {liveRecord?.url ?? context.previewUrl} · Simulated live URL — this address does not host a real application. The page renders the same preview shared with the workspace.
       </p>
 
       {details && (

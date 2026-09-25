@@ -254,3 +254,25 @@ Small verifiable fixes with the same theme: the failed-deploy "View logs" button
 
 ### Did any of this change the simulated-vs-real boundary?
 No. Every fix stayed within the existing mock infrastructure (same mock data, same localStorage keys, same typed snapshots, same labels). The pass strengthened the "honest prototype" story: it removed dead affordances that could be read as broken, added labels where reality could be misread ("Production · Live" → "Production · Live (simulated)" in the palette of the live chip), and made error paths teach the user how to recover. The upgrade seams documented in Phases 5 and 6 are untouched.
+
+---
+
+## Phase 7.5 / Final Refinement Q&A
+
+### Why make the landing page auth-first with simulated Google/GitHub buttons?
+The first-run story is the front door of the product: a user should feel able to "build anything by describing it" within seconds, not be confronted with a developer-y hero. Leading with `Continue with Google` / `Continue with GitHub` is both the industry-expected pattern and honest — the buttons are labeled as simulated, they share one mock identity (`DEMO_USER`), and the fallback email path still exists. It also gives the auth system a single shared `SocialProviders` component instead of a one-off GitHub button on each form, which is the component I'd reuse when swapping in real OAuth.
+
+### How does the scenario system work, and what are its seams?
+`data/scenarios.ts` owns four scenarios (SaaS Analytics, Customer Support, Project Management, Personal Finance), each with an initial + iteration build recipe, a file tree, code samples, a package name, a preview URL, git seed history, and terminal boot lines. `WorkspaceShell` resolves the current prompt to one scenario deterministically once per session and points every downstream surface at it (explorer heading, editor samples, terminal boot, build history seeds, deployment header, live preview). The resolver is keyword matching with a strict matched-keyword order — deliberately leaky (unrelated prompts fall back to SaaS) and labeled as such. The seams for production are: (a) swap `resolveScenario` for an LLM/semantic classifier or an explicit project picker, and (b) the recipes/config are typed data, so they already define what a real orchestration worker would plan and execute.
+
+### Why did `board` become `kanban board` in the resolver keywords?
+Because substring matching is greedy: a project-management keyword of `board` matches the substring inside "dashboard", so `"SaaS analytics subscription dashboard"` resolved to the Kanban app instead of the analytics app. It's a tiny but demonstrative bug — deterministic overrides can produce surprising collisions, and the fix (longer, less ambiguous keyword) plus a resolver test table (analytics → SaaS, "customer support dashboard for SaaS" → deskflow, "kanban board" → sprintboard, finance → ledger, gibberish → SaaS) is the same discipline you'd apply to any rule/classification layer.
+
+### Why share one preview between the workspace and the live deployment page?
+The product loop is "build it, see it live." If the live page showed a different app than the one the workspace was building, the demo would contradict itself. `ScenarioPreview` renders the same per-scenario mock in both places, and `readProjectContext`/`writeProjectContext` persist the current scenario under a new key (`architect-demo-project`) so the live page reflects the last workspace session. This is exactly the seam a real deployment would have: the preview payload becomes the artifact the live URL serves.
+
+### What's new in build history, and why?
+History rows read `Build 1/2/3…` accompanied by a human-readable change summary produced by `changeSummary` (keyword → "Added date-range filtering…", "Refreshed the charts…", etc.). Before, a history item only had a truncated label, so iterating several times produced a wall of near-identical text. Summaries make the narrative readable ("what did each instruction actually change?") while staying honest — they only narrate; the preview/files don't actually change, which the UI still says.
+
+### Did auth/social change any persistence contract?
+No. Social sign-in still writes the same `architect-demo-auth` session via `signInMock`/`DEMO_USER` and honors `RedirectIfAuthed`'s `next=` handling. The only new storage key anywhere is `architect-demo-project`, which is additive and holds nothing sensitive — just which of the four scenarios is "current", re-derived on every workspace visit and used only by the live-page preview. The existing "Reset demo data" control on `/deployments` resets the deployment demo; project context needs no reset because it is recomputed each session and falls back to the SaaS default when absent.

@@ -3,11 +3,11 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import {
   findTerminalCommand,
   simulatedTerminalNote,
-  terminalBoot,
   terminalSuggestions,
   type CodeTone,
   type TerminalLine,
 } from "@/data/developer";
+import { terminalBootFor } from "@/data/scenarios";
 
 const toneClass: Record<CodeTone, string> = {
   prompt: "text-emerald-300",
@@ -18,8 +18,8 @@ const toneClass: Record<CodeTone, string> = {
   plain: "text-slate-300",
 };
 
-export function TerminalPanel() {
-  const [lines, setLines] = useState<TerminalLine[]>(terminalBoot);
+export function TerminalPanel({ packageName = "northstar-analytics" }: { packageName?: string }) {
+  const [lines, setLines] = useState<TerminalLine[]>(() => terminalBootFor(packageName));
   const [input, setInput] = useState("");
   const containerRef = useRef<HTMLDivElement | null>(null);
 

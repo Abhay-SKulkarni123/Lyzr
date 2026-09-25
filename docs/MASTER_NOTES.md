@@ -139,12 +139,13 @@ Small, focused components in `components/workspace/` that take props (no shared 
 - `?next=` read via `window.location.search` (avoids `useSearchParams`/Suspense).
 
 ### Workspace seeding
-`app/workspace/page.tsx` reads `searchParams` (server-side, Next 14), resolves project id → display name, and passes `initialPrompt`/`projectName`/`autoRun` into `WorkspaceShell`. Keeps `/workspace` stateless and deep-linkable.
+`app/workspace/page.tsx` reads `searchParams` (server-side, Next 14), resolves project id → display name, and passes `initialPrompt`/`projectName`/`autoRun` into `WorkspaceShell`. Keeps `/workspace` stateless and deep-linkable. `WorkspaceShell` resolves the prompt to a scenario via `resolveScenario` (deterministic, once per session) and persists it under `architect-demo-project` so `/deployments/live` can show the same app.
 
 ### Folder responsibilities
 - `app/workspace/page.tsx` — resolves context only.
-- `components/workspace/WorkspaceShell.tsx` — state machine + layout composition.
-- `data/builds.ts` — pure data: agents, recipes, plans, activities, seed versions, file labels.
+- `components/workspace/WorkspaceShell.tsx` — state machine + layout composition + scenario resolution/persistence.
+- `data/builds.ts` — pure data: agents, recipes, plans, activities, seed versions, file labels (analytics default).
+- `data/scenarios.ts` — pure data: 4 scenarios (recipes, file trees, code samples, keywords, resolver, change-summary map, project-context helpers, seed/history/terminal generators).
 - `components/workspace/*` — presentational build UI.
 
 ---
@@ -219,6 +220,14 @@ A no-new-features pass that makes Phases 0–6 feel evaluated-ready while preser
 - **Deployment surface polish**: empty states for deployment history and logs, valid `li`/button nesting in history items, staging deployments show an amber tone.
 - **Validation**: `type-check`, `lint`, and `next build` all clean; production-server smoke test returned 200 for `/`, `/login`, `/signup`, `/dashboard`, `/projects`, `/templates`, `/settings`, `/workspace`, `/github`, `/deployments`, `/deployments/live`, and the seeded `/workspace?prompt=…&new=1` route.
 
+### Phase 7.5 — Final Product Refinement (done)
+A restrained polish pass focused on first-run onboarding, prompt-aware coherence, and keeping every surface honest about being a simulation.
+- **Auth-first landing & first-run**: the hero now leads with simulated `Continue with Google` / `Continue with GitHub` (new shared `SocialProviders`, self-managed spinner, wired into landing + `/login` + `/signup`; the old single GitHub button is replaced so both providers share one identity `DEMO_USER`). Hero copy "Build anything. Just describe it.", a session-aware hero/CTA (Continue building · Open dashboard ↔ social buttons), a "Try it — pick a prompt" strip of 4 seeds that deep-link into the right scenario (`/workspace?prompt=…&new=1`), and the bottom CTA band was de-gradiented (bordered card). Auth-card divider is `aria-hidden` so social buttons remain exposed.
+- **Prompt-aware scenario system**: new `data/scenarios.ts` with 4 scenarios — SaaS Analytics (default), Customer Support (deskflow), Project Management (sprintboard), Personal Finance (ledger-app). Each owns a deterministic keyword resolver (normalize → first keyword match → SaaS fallback), an initial + iteration build recipe (9- and 5-step respectively), a file tree, code samples, package name, live preview URL, git seed history, and terminal boot lines. The workspace resolves once per session (`promptStack[0] ?? initialPrompt`) and reuses its recipe/file/sample/tree/package everywhere (FileExplorer heading, CodeEditor samples, TerminalPanel boot, BuildHistory, GitPanel, deployment header). The resolver intentionally checks short-word keywords carefully — e.g. project-management's `board` keyword was changed to `kanban board` because `"dashboard".includes("board")` hijacked SaaS prompts.
+- **One preview everywhere**: new `ScenarioPreview` renders a per-scenario mock app (Customer Support / Project Management / Personal Finance variants; SaaS reuses `DashboardPreview`) in BOTH the workspace and `/deployments/live` (which reads the persisted project context). `lib`-level `readProjectContext`/`writeProjectContext` keep a new localStorage key `architect-demo-project` synced from the workspace so the "Open Live App" page shows the same app being built.
+- **Build/iteration history**: build history rows now say `Build 1/2/3…` with a human change summary per build (`changeSummary` maps prompt keywords → what-changed sentences); new builds push `{version, label, summary, prompt}` onto a `VersionSummary` list; seed versions are scenario-specific.
+- **Validation**: type-check + lint + `next build` clean; production-server smoke test 200 on all 12 routes + 4 seeded scenario prompts; SSR verified each seed renders its expected scenario (northstar/deskflow/sprintboard/ledger-app present and others absent); deterministic resolver cases verified (analytics → SaaS, customer-support phrase → deskflow, "kanban board" → sprintboard, finance → ledger, unrelated → SaaS).
+
 ---
 
 ## Important Trade-offs
@@ -239,7 +248,8 @@ A no-new-features pass that makes Phases 0–6 feel evaluated-ready while preser
 
 ## Current Limitations
 
-- No persistence beyond `architect-demo-auth`, `architect-demo-github`, and `architect-demo-deployment` (projects, prompts, history, commits, env edits vanish on reload).
+- No persistence beyond `architect-demo-auth`, `architect-demo-github`, `architect-demo-deployment`, and `architect-demo-project` (projects, prompts, history, commits, env edits vanish on reload).
+- Scenario selection is keyword-based and deterministic — it describes intent of the mock app but never drives real generation; seeds (4 scenarios) are the only prompts that change which app is built. A richer resolver (LLM/semantic classification or an explicit project picker) is a production upgrade.
 - GitHub state is per-browser: navigation between workspace and `/github` shares state through localStorage, but there is no server, no cross-device sync, and no real GitHub account/remote.
 - Deployment state is per-browser and fully simulated: no real builds, artifacts, environments, URLs, webhooks, or CI/CD; live URLs (`*.architect-demo.app`) do not resolve to a real service; "Open Live App" renders the same static preview.
 - Build does not change the preview, files, or code — all simulated.

@@ -6,7 +6,8 @@ import { BuildStatusPill } from "./BuildStatus";
 import { BuildTimeline } from "./BuildTimeline";
 import { FileActivity } from "./FileActivity";
 import { isBuildPhase, type BuildStatus } from "./types";
-import { agents, type AgentId, type BuildActivity, type BuildRecipe, type BuildVersion } from "@/data/builds";
+import { agents, type AgentId, type BuildActivity, type BuildRecipe } from "@/data/builds";
+import type { VersionSummary } from "@/data/scenarios";
 
 function agentName(id: AgentId): string {
   return agents.find((agent) => agent.id === id)?.name ?? "Architect";
@@ -28,7 +29,7 @@ type ActivityPanelProps = {
   files: string[];
   latestPrompt: string;
   promptStack: string[];
-  versions: BuildVersion[];
+  versions: VersionSummary[];
   failureArmed: boolean;
   onArmFailure: () => void;
   onOpenFile?: (path: string) => void;
