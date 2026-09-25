@@ -2,6 +2,7 @@
 
 import { Command, Hash, Hexagon, Search } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { UserMenu } from "@/components/shared/UserMenu";
 
 type DashboardHeaderProps = {
@@ -9,6 +10,17 @@ type DashboardHeaderProps = {
 };
 
 export function DashboardHeader({ onNotice }: DashboardHeaderProps) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        onNotice("Search is mocked in this prototype.");
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onNotice]);
+
   return (
     <header className="relative z-10 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.07] bg-[#10141d] px-4 md:px-6">
       <Link

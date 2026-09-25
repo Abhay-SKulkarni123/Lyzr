@@ -69,9 +69,12 @@ export function GithubConnectionModal({ github, onClose }: GithubConnectionModal
           </div>
 
           {github.connectError && (
-            <p className="mt-3 rounded-md border border-rose-400/20 bg-rose-500/[0.05] p-2.5 text-[9px] leading-4 text-rose-200" role="alert">
-              {github.connectError}
-            </p>
+            <div className="mt-3 rounded-md border border-rose-400/20 bg-rose-500/[0.05] p-2.5 text-[9px] leading-4 text-rose-200" role="alert">
+              <p>{github.connectError}</p>
+              <p className="mt-1 text-[8px] leading-4 text-slate-500">
+                Turn off &#8220;Simulate demo failures&#8221; below, then connect again.
+              </p>
+            </div>
           )}
 
           <div className="mt-4 flex items-center justify-end gap-2 border-t border-white/[0.07] pt-3">
@@ -157,29 +160,31 @@ export function GithubConnectionModal({ github, onClose }: GithubConnectionModal
               selected={github.branch}
             />
           </div>
-
-          <label className="mt-4 flex cursor-pointer items-start gap-2 rounded-md border border-white/[0.07] bg-[#0b0f19] p-3">
-            <input
-              aria-describedby="demo-failure-hint"
-              className="mt-0.5 h-3 w-3 accent-coral"
-              checked={github.demoFailures}
-              onChange={(event) => github.setDemoFailures(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              <span className="block text-[10px] font-medium text-slate-300">Simulate demo failures</span>
-              <span className="mt-0.5 block text-[8px] leading-4 text-slate-600" id="demo-failure-hint">
-                Causes the next connect, sync, push, or pull request to fail exactly once so the error + retry flow can be shown. Disable it to recover.
-              </span>
-            </span>
-          </label>
-
-          <p className="mt-4 text-[8px] leading-4 text-slate-600">
-            Your connection state is stored only in this browser (localStorage, key{" "}
-            <code className="rounded bg-white/[0.05] px-1 text-coral">architect-demo-github</code>). No credentials, tokens, or personal data leave this machine.
-          </p>
         </div>
       )}
+
+      <div className="mt-4">
+        <label className="flex cursor-pointer items-start gap-2 rounded-md border border-white/[0.07] bg-[#0b0f19] p-3">
+          <input
+            aria-describedby="demo-failure-hint"
+            className="mt-0.5 h-3 w-3 accent-coral"
+            checked={github.demoFailures}
+            onChange={(event) => github.setDemoFailures(event.target.checked)}
+            type="checkbox"
+          />
+          <span>
+            <span className="block text-[10px] font-medium text-slate-300">Simulate demo failures</span>
+            <span className="mt-0.5 block text-[8px] leading-4 text-slate-600" id="demo-failure-hint">
+              While enabled, connect, sync, push, and pull request actions fail so the error + retry flow can be shown. Turn it off to recover.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <p className="mt-3 text-[8px] leading-4 text-slate-600">
+        Your connection state is stored only in this browser (localStorage, key{" "}
+        <code className="rounded bg-white/[0.05] px-1 text-coral">architect-demo-github</code>). No credentials, tokens, or personal data leave this machine.
+      </p>
     </GithubDialog>
   );
 }

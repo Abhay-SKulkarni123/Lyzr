@@ -9,6 +9,7 @@ import { GithubConnectionModal } from "@/components/github/GithubConnectionModal
 import { PullRequestDialog } from "@/components/github/PullRequestDialog";
 import { useGithubState } from "@/components/github/useGithubState";
 import { ActivityPanel, ActivitySummary } from "./ActivityPanel";
+import { BuildSessionPanel } from "./BuildSessionPanel";
 import { CodeEditor } from "./CodeEditor";
 import { DashboardPreview } from "./DashboardPreview";
 import { DeveloperSettingsPanel } from "./DeveloperSettingsPanel";
@@ -46,7 +47,7 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({
   initialPrompt = defaultPrompt,
-  projectName = "Northstar Analytics",
+  projectName = "SaaS Analytics",
   autoRun = false,
 }: WorkspaceShellProps) {
   const [view, setView] = useState<WorkspaceView>("preview");
@@ -245,6 +246,18 @@ export function WorkspaceShell({
         status={buildStatus}
       />
       <WorkspaceToolbar activeView={view} developerMode={developerMode} onChange={setView} status={buildStatus} />
+      <BuildSessionPanel
+        activeStep={activeStep}
+        flat={flat}
+        isIteration={promptStack.length > 1}
+        latestPrompt={latestPrompt}
+        onOpenDeploy={() => setDeployDialogOpen(true)}
+        onOpenPreview={() => setView("preview")}
+        onRetry={retryBuild}
+        onReviewChanges={() => setView("files")}
+        recipe={recipe}
+        status={buildStatus}
+      />
 
       <div className="relative flex min-h-0 flex-1">
         <FileExplorer onSelect={openFileByPath} modifiedFiles={modifiedFiles} selectedFile={activePath} />
@@ -308,7 +321,6 @@ export function WorkspaceShell({
           latestPrompt={latestPrompt}
           onArmFailure={armFailure}
           onOpenFile={openFileByPath}
-          onRetry={retryBuild}
           promptStack={promptStack}
           recipe={recipe}
           status={buildStatus}

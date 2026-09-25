@@ -2,7 +2,7 @@ import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { projects } from "@/data/projects";
 
 const defaultPrompt = "Build a clean SaaS analytics dashboard for a modern startup.";
-const defaultProject = "Northstar Analytics";
+const defaultProject = "SaaS Analytics";
 
 export default function WorkspacePage({
   searchParams,

@@ -31,6 +31,9 @@ export function DeploymentLogs({ logs, compact = false }: DeploymentLogsProps) {
       </button>
       {open && (
         <ul className="workspace-scrollbar max-h-44 space-y-1 overflow-y-auto border-t border-white/[0.06] px-3 py-2.5">
+          {logs.length === 0 && (
+            <li className="text-[9px] text-slate-600">No log output for this deployment yet.</li>
+          )}
           {logs.map((log, index) => (
             <li key={index} className="flex items-start gap-2 text-[9px]">
               {log.level === "error" ? (

@@ -1,4 +1,4 @@
-import { LoaderCircle, TerminalSquare } from "lucide-react";
+import { Play, TerminalSquare } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
   findTerminalCommand,
@@ -56,13 +56,13 @@ export function TerminalPanel() {
   }
 
   return (
-    <section className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018]" aria-label="Simulated terminal">
+    <section className="flex h-full min-h-[300px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018] sm:min-h-[420px]" aria-label="Simulated terminal">
       <div className="flex h-10 shrink-0 items-center justify-between border-b border-white/[0.07] px-3">
         <span className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
           <TerminalSquare aria-hidden="true" className="h-3.5 w-3.5 text-slate-600" />
           Simulated terminal
         </span>
-        <span className="flex items-center gap-1.5 text-[9px] text-slate-600">
+        <span className="flex items-center gap-1.5 rounded-full border border-white/[0.12] px-2 py-0.5 text-[9px] text-slate-400">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           Mock session
         </span>
@@ -106,7 +106,7 @@ export function TerminalPanel() {
             className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-white/[0.1] px-3 text-[10px] font-semibold text-slate-300 transition hover:border-white/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
             type="submit"
           >
-            <LoaderCircle aria-hidden="true" className="h-3 w-3 text-slate-500" />
+            <Play aria-hidden="true" className="h-3 w-3 text-slate-500" />
             Run
           </button>
         </div>

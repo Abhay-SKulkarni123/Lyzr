@@ -232,3 +232,25 @@ To obey "simple by default, powerful when needed." A creator should experience d
 
 ### What is the production upgrade path for this mock?
 1) `POST /api/deployments` + provider adapters behind `deployment-storage.ts`. 2) Stream real build/deploy status + logs over SSE into `DeploymentProgress`/`DeploymentLogs`. 3) Resolve real per-deployment URLs; label/link Preview and Production environments. 4) Webhook-driven auto-deploy on push/merge with branch+commit association. 5) Server-side secret store + per-environment variables. The `DeploymentSnapshot`/`DeploymentConfig`/`DeploymentRecord` types are the API contract, so the UI changes as little as possible — the same principle the GitHub phase used.
+
+---
+
+## Phase 7 / Polish & Coherence Q&A
+
+### Why add a build-session strip when plan/recap/retry already existed in the Activity panel?
+Because the audit found a real product gap: the plan, completion recap, and Retry button only existed inside the `hidden … xl:flex` activity panel, so anyone on a laptop (below 1280px) never saw the plan being worked, never saw a what-changed recap, and had no way to retry a failed build. The new `BuildSessionPanel` is a full-width strip under the workspace toolbar, visible at every breakpoint, and the activity panel was deduped so the same information doesn't render twice. `isIteration` is derived from `promptStack.length > 1`, not `buildIndex` — a subtle but critical distinction, because `buildIndex` increments on completion and would mislabel the very first build as an iteration.
+
+### Why did you change project name and dates?
+Residual inconsistencies undermine the "coherent product" story even when the core loop works. The default project was called "Northstar Analytics" in the workspace while the project list and git repo said "SaaS Analytics" (three names for one thing), and fixtures rendered June 2024 while the demo is presented in 2026. Aligning the name to "SaaS Analytics" everywhere and updating dates keeps the universe self-consistent.
+
+### How did you decide what a "dead interaction" fix looks like?
+The rule: never present a button that does nothing, and never fake an interaction. Where a prototype action genuinely can't work yet (Rename/Duplicate/Archive a project, search, command palette), the UI now acknowledges it inline with a labeled, self-dismissing "prototype action" notice instead of silently no-oping — same honesty principle as every "Simulated…" label, applied one layer deeper.
+
+### Why move the "Simulate demo failures" toggle out of the connected branch?
+The audit found a recoverability bug, not just a UX nit: the failure toggle only lived in the connected branch of the GitHub dialog, so a user who hit the simulated connect failure while disconnected could never reach the toggle that would let them recover — a genuine stall. Hoisting it above both branches and pointing the connect error at it turns a demo failure into a recoverable, explainable flow instead of a dead end.
+
+### What did the polish pass change about the deployment surface?
+Small verifiable fixes with the same theme: the failed-deploy "View logs" button did nothing (logs are always rendered below, so it was removed rather than left dead), Redeploy on the live-app page now actually restarts the deployment via the shared hook instead of just closing the dialog, and the history/logs views got empty states and valid list semantics (`li` outside the button) so no surface renders a confusing void or invalid HTML.
+
+### Did any of this change the simulated-vs-real boundary?
+No. Every fix stayed within the existing mock infrastructure (same mock data, same localStorage keys, same typed snapshots, same labels). The pass strengthened the "honest prototype" story: it removed dead affordances that could be read as broken, added labels where reality could be misread ("Production · Live" → "Production · Live (simulated)" in the palette of the live chip), and made error paths teach the user how to recover. The upgrade seams documented in Phases 5 and 6 are untouched.

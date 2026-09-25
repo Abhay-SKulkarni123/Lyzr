@@ -43,7 +43,7 @@ export function PreviewStatus({ status, live = false }: PreviewStatusProps) {
       {live && (
         <div className="flex items-center gap-1.5 rounded-full border border-coral/30 bg-[#0c1018]/90 px-3 py-1.5 shadow-lg backdrop-blur">
           <Rocket aria-hidden="true" className="h-3 w-3 text-coral" />
-          <span className="text-[10px] font-medium text-orange-100">Production · Live</span>
+          <span className="text-[10px] font-medium text-[#ffb3a3]">Production · Live (simulated)</span>
           <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-coral" />
         </div>
       )}

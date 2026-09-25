@@ -117,7 +117,7 @@ export function DashboardPreview() {
           <div className="mx-auto max-w-[920px]">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
-                <p className="text-[8px] font-medium uppercase tracking-[0.12em] text-slate-400">Monday, June 24, 2024</p>
+                <p className="text-[8px] font-medium uppercase tracking-[0.12em] text-slate-400">Friday, September 25, 2026</p>
                 <h1 className="mt-1 text-[17px] font-semibold tracking-tight text-slate-900 sm:text-[20px]">Good morning, Jordan <span aria-hidden="true">👋</span></h1>
                 <p className="mt-1 text-[10px] text-slate-500">Here&apos;s what&apos;s happening with your store today.</p>
               </div>

@@ -2,7 +2,7 @@
 
 import { LoaderCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { templates } from "@/data/templates";
 
 type NewProjectModalProps = {
@@ -19,6 +19,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
   const [templateId, setTemplateId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const nameRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -26,6 +27,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
       setPrompt(initialPrompt);
       setTemplateId("");
       setError(null);
+      requestAnimationFrame(() => nameRef.current?.focus());
     }
   }, [open, initialName, initialPrompt]);
 
@@ -89,6 +91,7 @@ export function NewProjectModal({ open, onClose, initialName = "", initialPrompt
               </label>
               <input
                 id="new-project-name"
+                ref={nameRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. SaaS Analytics"

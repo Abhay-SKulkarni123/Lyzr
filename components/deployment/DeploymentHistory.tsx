@@ -19,9 +19,15 @@ function groupByEnvironment(records: DeploymentRecord[]) {
 
 export function DeploymentHistory({ records, onSelect, limit }: DeploymentHistoryProps) {
   const groups = groupByEnvironment(records);
+  const hasAny = records.length > 0;
 
   return (
     <div className="space-y-4" aria-label="Deployment history">
+      {!hasAny && (
+        <p className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-[10px] text-slate-600">
+          No deployments yet. Deploy the project to see its history here.
+        </p>
+      )}
       {(["production", "preview"] as const).map((environment) => {
         const group = groups.get(environment) ?? [];
         const shown = limit != null ? group.slice(0, limit) : group;
@@ -36,14 +42,15 @@ export function DeploymentHistory({ records, onSelect, limit }: DeploymentHistor
             </h2>
             <ul className="space-y-1.5" aria-label={`${environment} deployments`}>
               {shown.map((record) => (
-                <button
-                  className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
-                  key={record.id}
-                  onClick={() => onSelect(record)}
-                  type="button"
-                >
-                  <DeploymentHistoryItem record={record} />
-                </button>
+                <li key={record.id}>
+                  <button
+                    className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
+                    onClick={() => onSelect(record)}
+                    type="button"
+                  >
+                    <DeploymentHistoryItem record={record} />
+                  </button>
+                </li>
               ))}
             </ul>
           </section>

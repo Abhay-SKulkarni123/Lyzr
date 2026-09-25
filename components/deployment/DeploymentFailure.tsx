@@ -4,11 +4,10 @@ import { LoaderCircle, TriangleAlert } from "lucide-react";
 
 type DeploymentFailureProps = {
   onRetry: () => void;
-  onViewLogs: () => void;
   busy?: boolean;
 };
 
-export function DeploymentFailure({ onRetry, onViewLogs, busy = false }: DeploymentFailureProps) {
+export function DeploymentFailure({ onRetry, busy = false }: DeploymentFailureProps) {
   return (
     <div aria-live="polite">
       <div className="flex items-center gap-3">
@@ -35,13 +34,7 @@ export function DeploymentFailure({ onRetry, onViewLogs, busy = false }: Deploym
           {busy ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" /> : <TriangleAlert aria-hidden="true" className="h-3.5 w-3.5" />}
           {busy ? "Deploying…" : "Retry deployment"}
         </button>
-        <button
-          className="flex h-8 items-center gap-1.5 rounded-md border border-white/[0.12] px-3 text-[10px] font-semibold text-slate-300 transition hover:border-white/25 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60"
-          onClick={onViewLogs}
-          type="button"
-        >
-          View logs
-        </button>
+        <p className="text-[8px] text-slate-600">Full build logs are shown below.</p>
       </div>
     </div>
   );

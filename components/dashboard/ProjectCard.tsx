@@ -1,5 +1,6 @@
-import { MoreHorizontal, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MoreHorizontal, X } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { Menu, type MenuItem } from "@/components/shared/Menu";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import type { Project } from "@/data/projects";
@@ -7,18 +8,36 @@ import { ProjectThumb } from "./ProjectThumb";
 
 type ProjectCardProps = {
   project: Project;
-  onAction?: (message: string) => void;
+};
+
+const NOTICE_MESSAGES: Record<string, string> = {
+  Rename: "Project renaming is a prototype action in this demo.",
+  Duplicate: "Duplicating projects is a prototype action in this demo.",
+  Archive: "Archiving projects is a prototype action in this demo.",
 };
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const [notice, setNotice] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
+
+  const showNotice = (message: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setNotice(message);
+    timerRef.current = setTimeout(() => setNotice(null), 3600);
+  };
+
   const items: MenuItem[] = [
-    { label: "Rename", onSelect: () => undefined },
-    { label: "Duplicate", onSelect: () => undefined },
-    { label: "Archive", onSelect: () => undefined, danger: true },
+    { label: "Rename", onSelect: () => showNotice(NOTICE_MESSAGES.Rename) },
+    { label: "Duplicate", onSelect: () => showNotice(NOTICE_MESSAGES.Duplicate) },
+    { label: "Archive", onSelect: () => showNotice(NOTICE_MESSAGES.Archive), danger: true },
   ];
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#10141d] transition hover:border-white/[0.16] hover:shadow-[0_14px_34px_rgba(0,0,0,0.22)]">
+    <article className="group relative flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-[#10141d] transition hover:border-white/[0.16] hover:shadow-[0_14px_34px_rgba(0,0,0,0.22)]">
       <div className="relative">
         <ProjectThumb project={project} />
         <div className="absolute right-2 top-2">
@@ -42,9 +61,26 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
         <p className="mb-3 line-clamp-2 text-xs leading-5 text-slate-500">{project.description}</p>
 
+        {notice && (
+          <p
+            className="mb-3 flex items-start gap-1.5 rounded-md border border-amber-400/20 bg-amber-400/[0.08] px-2 py-1.5 text-[11px] leading-[16px] text-amber-200/90"
+            role="status"
+          >
+            <span className="flex-1">{notice}</span>
+            <button
+              aria-label="Dismiss notice"
+              className="shrink-0 text-amber-200/60 transition hover:text-amber-200"
+              onClick={() => setNotice(null)}
+              type="button"
+            >
+              <X aria-hidden="true" className="h-3 w-3" />
+            </button>
+          </p>
+        )}
+
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <StatusBadge label={project.status} tone={project.status === "active" ? "success" : project.status === "building" ? "warning" : "neutral"} pulse={project.status === "building"} />
-          <StatusBadge label={project.deploymentStatus.replace("-", " ")} tone={project.deploymentStatus === "deployed" ? "info" : "neutral"} />
+          <StatusBadge label={project.deploymentStatus.replace("-", " ")} tone={project.deploymentStatus === "deployed" ? "info" : project.deploymentStatus === "staging" ? "warning" : "neutral"} />
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3">

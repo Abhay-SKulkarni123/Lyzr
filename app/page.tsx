@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Terminal, Users, GitFork, Settings, Code2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Hexagon, Plus, Terminal, Users, GitFork, Settings, Code2 } from "lucide-react";
+import { getMockSession } from "@/lib/auth";
 
 const features = [
   {
@@ -49,13 +51,57 @@ const features = [
 ];
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setSignedIn(getMockSession().signedIn);
+  }, []);
+
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
+      <nav className="mb-14 flex items-center justify-between gap-4">
+        <span className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-coral text-white shadow-[0_5px_18px_rgba(255,107,74,0.2)]">
+            <Hexagon aria-hidden="true" className="h-4 w-4" strokeWidth={2.4} />
+          </span>
+          architect
+        </span>
+        <span className="flex items-center gap-3">
+          {mounted && signedIn ? (
+            <>
+              <Link className="text-xs text-slate-400 transition hover:text-white" href="/workspace">
+                Workspace
+              </Link>
+              <Link
+                className="rounded-lg bg-coral px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#ff795c]"
+                href="/dashboard"
+              >
+                Open dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="text-xs text-slate-400 transition hover:text-white" href="/login">
+                Sign in
+              </Link>
+              <Link
+                className="rounded-lg border border-white/15 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
+                href="/signup"
+              >
+                Create account
+              </Link>
+            </>
+          )}
+        </span>
+      </nav>
+
       <div className="mb-16 text-center">
-        <h1 className="mb-6 text-5xl font-bold tracking-tight text-ink md:text-6xl">
+        <h1 className="mb-6 text-5xl font-bold tracking-tight text-white md:text-6xl">
           Architect 2.0
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-slate-600 md:text-xl">
+        <p className="mx-auto max-w-2xl text-lg text-slate-400 md:text-xl">
           One platform for everyone. Simple by default. Powerful when needed.
         </p>
       </div>
@@ -94,7 +140,7 @@ export default function HomePage() {
             Start Building (Prompt)
           </Link>
           <Link
-            href="/login"
+            href="/login?next=/workspace"
             className="rounded-lg border border-white/20 bg-white/10 px-8 py-4 font-medium text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20"
           >
             Explore Developer Mode

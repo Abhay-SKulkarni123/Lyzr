@@ -41,7 +41,7 @@ export function CodeEditor({ tabs, activePath, modifiedFiles, onSelect, onClose 
 
   if (!activePath) {
     return (
-      <section className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018]" aria-label="Code editor">
+      <section className="flex h-full min-h-[300px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018] sm:min-h-[420px]" aria-label="Code editor">
         <CodeTabs tabs={tabs} activePath={activePath} modifiedFiles={modifiedFiles} onSelect={onSelect} onClose={onClose} />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.04] text-slate-500">
@@ -70,7 +70,7 @@ export function CodeEditor({ tabs, activePath, modifiedFiles, onSelect, onClose 
   }
 
   return (
-    <section className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018]" aria-label="Code editor">
+    <section className="flex h-full min-h-[300px] flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#0c1018] sm:min-h-[420px]" aria-label="Code editor">
       <CodeTabs tabs={tabs} activePath={activePath} modifiedFiles={modifiedFiles} onSelect={onSelect} onClose={onClose} />
       <div className="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-white/[0.07] px-3">
         <div className="flex min-w-0 items-center gap-2 text-[10px] text-slate-400">

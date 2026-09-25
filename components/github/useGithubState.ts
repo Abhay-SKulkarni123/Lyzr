@@ -106,7 +106,7 @@ export function useGithubState({ onNotice }: UseGithubStateArgs) {
   }
 
   function selectRepo(id: string) {
-    const target = repoById(id);
+    const target = repoById(id) ?? snapshot.createdRepositories.find((item) => item.id === id);
     if (!target) return;
     setSnapshot((prev) => {
       const current = prev.branch;

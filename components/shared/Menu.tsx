@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode, type ComponentType } from "react";
 
 export type MenuItem = {
@@ -67,7 +68,7 @@ export function Menu({ trigger, items, align = "right", label }: MenuProps) {
               item.danger ? "text-rose-300" : "text-slate-300"
             }`;
             return item.href ? (
-              <a
+              <Link
                 key={item.label}
                 role="menuitem"
                 className={className}
@@ -75,7 +76,7 @@ export function Menu({ trigger, items, align = "right", label }: MenuProps) {
                 onClick={() => setOpen(false)}
               >
                 {content}
-              </a>
+              </Link>
             ) : (
               <button
                 key={item.label}

@@ -28,7 +28,7 @@ export function PromptComposer({ status, onSubmit, developerMode = false }: Prom
 
   const hint =
     status === "error"
-      ? "Build failed. You can retry from the activity panel."
+      ? "Build failed. Press Retry build in the summary above, or tweak your prompt."
       : busy
       ? "Architect is simulating a build · no code is generated"
       : status === "complete"

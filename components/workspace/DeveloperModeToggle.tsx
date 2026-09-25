@@ -38,7 +38,7 @@ export function DeveloperModeToggle({ developerMode, onChange }: DeveloperModeTo
       </div>
       <button
         aria-pressed={developerMode}
-        aria-label={developerMode ? "Developer mode is on" : "Switch to developer mode"}
+        aria-label={developerMode ? "Turn off developer mode" : "Turn on developer mode"}
         className={`flex h-8 w-8 items-center justify-center rounded-md border text-[10px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 md:hidden ${
           developerMode
             ? "border-coral/30 bg-coral/[0.12] text-coral"

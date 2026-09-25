@@ -16,7 +16,7 @@ export default function LiveDeploymentPage() {
 
   return (
     <div className="flex h-dvh min-w-[320px] flex-col bg-[#0b0f19] text-slate-200">
-      <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-coral/25 bg-coral/[0.04] px-3 sm:px-5">
+      <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-coral/25 bg-coral/[0.04] px-3 py-2 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <span aria-hidden="true" className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
@@ -75,7 +75,17 @@ export default function LiveDeploymentPage() {
         {liveRecord?.url ?? "https://saas-analytics.architect-demo.app"} · Simulated live URL — this address does not host a real application. The page renders the same preview shared with the workspace.
       </p>
 
-      {details && <DeploymentDetailsDialog busy={false} onClose={() => setDetails(null)} onRetry={() => setDetails(null)} record={details} />}
+      {details && (
+        <DeploymentDetailsDialog
+          busy={deployment.busy}
+          onClose={() => setDetails(null)}
+          onRetry={() => {
+            setDetails(null);
+            deployment.retry();
+          }}
+          record={details}
+        />
+      )}
     </div>
   );
 }

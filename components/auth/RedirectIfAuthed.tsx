@@ -12,7 +12,10 @@ export function RedirectIfAuthed({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    if (getMockSession().signedIn) router.replace("/dashboard");
+    if (getMockSession().signedIn) {
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(next && next.startsWith("/") ? next : "/dashboard");
+    }
   }, [mounted, router]);
 
   if (!mounted) {

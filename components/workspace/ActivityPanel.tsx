@@ -2,8 +2,7 @@ import { Check, LoaderCircle, Sparkles, TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { AgentActivity } from "./AgentActivity";
 import { BuildHistory } from "./BuildHistory";
-import { BuildPlan } from "./BuildPlan";
-import { BuildOutcome, BuildStatusPill } from "./BuildStatus";
+import { BuildStatusPill } from "./BuildStatus";
 import { BuildTimeline } from "./BuildTimeline";
 import { FileActivity } from "./FileActivity";
 import { isBuildPhase, type BuildStatus } from "./types";
@@ -32,7 +31,6 @@ type ActivityPanelProps = {
   versions: BuildVersion[];
   failureArmed: boolean;
   onArmFailure: () => void;
-  onRetry: () => void;
   onOpenFile?: (path: string) => void;
 };
 
@@ -47,12 +45,10 @@ export function ActivityPanel({
   versions,
   failureArmed,
   onArmFailure,
-  onRetry,
   onOpenFile,
 }: ActivityPanelProps) {
   const busy = isBuildPhase(status);
   const hasBuild = promptStack.length > 0;
-  const showOutcome = status === "complete" || status === "error";
 
   return (
     <aside className="hidden w-[300px] shrink-0 flex-col border-l border-white/[0.07] bg-[#10141d] xl:flex" aria-label="Build activity">
@@ -62,10 +58,6 @@ export function ActivityPanel({
       </div>
 
       <div className="workspace-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        {showOutcome && (
-          <BuildOutcome status={status} filesUpdated={files.length} onRetry={onRetry} />
-        )}
-
         <div className="flex items-start gap-2.5 rounded-lg border border-white/[0.07] bg-white/[0.025] p-3">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-coral/10 text-coral">
             <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
@@ -94,15 +86,6 @@ export function ActivityPanel({
           <div>
             <SectionLabel>Files</SectionLabel>
             <FileActivity status={status} activeStep={activeStep} flat={flat} files={files} onOpenFile={onOpenFile} />
-          </div>
-        )}
-
-        {hasBuild && (
-          <div>
-            <SectionLabel>Build plan</SectionLabel>
-            <div className="rounded-lg border border-white/[0.06] bg-[#0c1018] p-1.5">
-              <BuildPlan status={status} activeStep={activeStep} recipe={recipe} />
-            </div>
           </div>
         )}
 
@@ -165,7 +148,7 @@ export function ActivitySummary({ status, activeStep, flat }: ActivitySummaryPro
   } else if (status === "error") {
     icon = <TriangleAlert aria-hidden="true" className="h-3.5 w-3.5 text-rose-400" />;
     title = "Build failed";
-    subtitle = "Use Retry build from the activity panel";
+    subtitle = "Use Retry build from the summary above";
   } else {
     icon = <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-coral" />;
     title = "Architect";

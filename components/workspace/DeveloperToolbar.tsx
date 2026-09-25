@@ -24,7 +24,7 @@ export function DeveloperToolbar({ activeView, onChange }: DeveloperToolbarProps
           <button
             key={id}
             aria-current={active ? "page" : undefined}
-            className={`relative flex h-full shrink-0 items-center gap-2 px-2.5 text-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 md:px-2.5 ${
+            className={`relative flex h-full shrink-0 items-center gap-2 px-2.5 text-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 ${
               active ? "text-white" : "text-slate-500 hover:text-slate-200"
             }`}
             onClick={() => onChange(id)}

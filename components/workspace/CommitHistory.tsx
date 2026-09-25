@@ -18,16 +18,15 @@ export function CommitHistory({ commits }: CommitHistoryProps) {
         <GitCommitHorizontal aria-hidden="true" className="h-3 w-3" />
         History
       </h3>
-      <ul className="mt-2 space-y-1" role="listbox" aria-label="Commits">
+      <ul className="mt-2 space-y-1" role="list" aria-label="Commits">
         {commits.map((commit) => (
           <li key={commit.hash}>
             <button
-              aria-selected={commit.hash === active.hash}
+              aria-pressed={commit.hash === active.hash}
               className={`w-full rounded-md border px-3 py-2 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 ${
                 commit.hash === active.hash ? "border-coral/25 bg-white/[0.05]" : "border-transparent hover:bg-white/[0.03]"
               }`}
               onClick={() => setSelected(commit.hash)}
-              role="option"
               type="button"
             >
               <span className="flex items-center gap-2">

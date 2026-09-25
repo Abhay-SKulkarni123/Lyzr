@@ -4,14 +4,14 @@ const entries = [
   { path: "app/page.tsx", description: "Dashboard entry point", type: "tsx", size: "2.4 KB" },
   { path: "app/layout.tsx", description: "Application shell and metadata", type: "tsx", size: "1.1 KB" },
   { path: "app/globals.css", description: "Global styles and theme", type: "css", size: "3.8 KB" },
-  { path: "components/Dashboard.tsx", description: "Main analytics view", type: "tsx", size: "5.8 KB" },
+  { path: "components/Dashboard.tsx", description: "Main analytics view", type: "tsx", size: "3.6 KB" },
   { path: "components/dashboard/Sidebar.tsx", description: "App navigation", type: "tsx", size: "2.1 KB" },
   { path: "components/dashboard/KpiCard.tsx", description: "Key performance metric card", type: "tsx", size: "1.4 KB" },
-  { path: "components/dashboard/RevenueChart.tsx", description: "Monthly revenue chart", type: "tsx", size: "1.9 KB" },
-  { path: "components/dashboard/Analytics.tsx", description: "Traffic source breakdown", type: "tsx", size: "2.2 KB" },
+  { path: "components/dashboard/RevenueChart.tsx", description: "Monthly revenue chart", type: "tsx", size: "2.4 KB" },
+  { path: "components/dashboard/Analytics.tsx", description: "Traffic source breakdown", type: "tsx", size: "1.7 KB" },
   { path: "lib/analytics.ts", description: "Sample dashboard metrics", type: "ts", size: "1.6 KB" },
-  { path: "package.json", description: "Project scripts and dependencies", type: "json", size: "0.8 KB" },
-  { path: "README.md", description: "Getting started guide", type: "md", size: "0.9 KB" },
+  { path: "package.json", description: "Project scripts and dependencies", type: "json", size: "1.0 KB" },
+  { path: "README.md", description: "Getting started guide", type: "md", size: "0.7 KB" },
 ];
 
 const typeIcon = (type: string) => {
@@ -39,7 +39,7 @@ export function FilesOverview({ onOpenFile, modifiedFiles }: FilesOverviewProps)
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-[10px] text-slate-500">
-            <Folder className="h-3.5 w-3.5 text-amber-300" /> northstar-analytics
+            <Folder className="h-3.5 w-3.5 text-amber-300" /> saas-analytics
           </div>
           <h2 className="mt-2 text-base font-semibold text-white">Project files</h2>
           <p className="mt-1 text-[11px] text-slate-500">A sample project structure for the generated dashboard.</p>

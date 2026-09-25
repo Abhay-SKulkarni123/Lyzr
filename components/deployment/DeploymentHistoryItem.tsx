@@ -16,7 +16,7 @@ const actionStatus: Record<Status, string> = {
 
 export function DeploymentHistoryItem({ record }: { record: DeploymentRecord }) {
   return (
-    <li className="flex items-center gap-3 rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-2 transition hover:border-white/[0.12]">
+    <div className="flex items-center gap-3 rounded-md border border-white/[0.06] bg-white/[0.02] px-2.5 py-2 transition hover:border-white/[0.12]">
       <span
         aria-hidden="true"
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white/[0.05] text-slate-400"
@@ -38,6 +38,6 @@ export function DeploymentHistoryItem({ record }: { record: DeploymentRecord }) 
         </p>
       </div>
       <DeploymentStatus status={record.status} label={actionStatus[record.status]} />
-    </li>
+    </div>
   );
 }

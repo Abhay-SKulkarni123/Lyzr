@@ -42,7 +42,7 @@ export function LoginForm() {
     setError(null);
     setStatus("github");
     window.setTimeout(() => {
-      signInMock({ name: DEMO_USER.name, email: "abhay@users.noreply.github.com" });
+      signInMock({ name: DEMO_USER.name, email: DEMO_USER.email });
       router.replace(nextPath());
     }, 900);
   }

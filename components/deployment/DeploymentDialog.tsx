@@ -146,11 +146,7 @@ export function DeploymentDialog({ deployment, branches, projectName, commitSha,
 
           {(status === "failed" || status === "cancelled") && (
             <div className="space-y-3">
-              <DeploymentFailure
-                busy={busy}
-                onRetry={deployment.retry}
-                onViewLogs={() => setAdvanced(true)}
-              />
+              <DeploymentFailure busy={busy} onRetry={deployment.retry} />
               <DeploymentLogs compact logs={deployment.activeRecord?.logs ?? []} />
             </div>
           )}
